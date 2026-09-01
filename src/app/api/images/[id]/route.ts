@@ -40,7 +40,7 @@ export async function GET(
       return NextResponse.json({ error: "Not found" }, { status: 404 });
     }
 
-    return new NextResponse(bytes, {
+    return new NextResponse(Buffer.from(bytes), {
       headers: {
         "Content-Type": (doc.mimeType as string) || "application/octet-stream",
         "Cache-Control": "public, max-age=31536000, immutable",
