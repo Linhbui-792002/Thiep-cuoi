@@ -21,6 +21,5 @@ const PageSectionSchema = new Schema<IPageSection>(
 );
 
 applySharedCollection(PageSectionSchema, DOC_TYPES.PAGE_SECTION);
-PageSectionSchema.index({ docType: 1, key: 1 }, { unique: true });
 
 export default models.PageSection || model<IPageSection>("PageSection", PageSectionSchema);

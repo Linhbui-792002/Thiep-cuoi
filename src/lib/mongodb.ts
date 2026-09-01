@@ -1,10 +1,12 @@
 import mongoose from "mongoose";
+import { ensureSharedIndexes } from "@/lib/db-config";
 
 const MONGODB_URI = process.env.MONGODB_URI;
 
 interface MongooseCache {
   conn: typeof mongoose | null;
   promise: Promise<typeof mongoose> | null;
+  indexesReady: boolean;
 }
 
 declare global {
@@ -15,6 +17,7 @@ declare global {
 const cached: MongooseCache = global.mongooseCache ?? {
   conn: null,
   promise: null,
+  indexesReady: false,
 };
 
 if (!global.mongooseCache) {
@@ -34,6 +37,7 @@ export async function connectDB() {
     cached.promise = mongoose.connect(MONGODB_URI, {
       bufferCommands: false,
       serverSelectionTimeoutMS: 8000,
+      autoIndex: false,
       // Atlas reserves `admin` / `local` / `config` — never use those as the app DB.
       dbName: process.env.MONGODB_DB || "thiep_cuoi",
     });
@@ -41,10 +45,15 @@ export async function connectDB() {
 
   try {
     cached.conn = await cached.promise;
+    if (!cached.indexesReady && cached.conn.connection.db) {
+      await ensureSharedIndexes(cached.conn.connection.db);
+      cached.indexesReady = true;
+    }
     return cached.conn;
   } catch (error) {
     cached.promise = null;
     cached.conn = null;
+    cached.indexesReady = false;
     throw error;
   }
 }

@@ -34,7 +34,6 @@ const ContentSectionSchema = new Schema<IContentSection>(
 );
 
 applySharedCollection(ContentSectionSchema, DOC_TYPES.CONTENT_SECTION);
-ContentSectionSchema.index({ docType: 1, key: 1 }, { unique: true });
 
 export default models.ContentSection ||
   model<IContentSection>("ContentSection", ContentSectionSchema);

@@ -1,4 +1,5 @@
 import type { Schema } from "mongoose";
+import type { Db } from "mongodb";
 
 /** Database: thiep_cuoi | Collection: db_cuoi_tun */
 export const MONGODB_COLLECTION = "db_cuoi_tun";
@@ -34,5 +35,29 @@ export function applySharedCollection(schema: Schema, docType: string) {
     schema.pre(hook, function () {
       this.where({ docType });
     });
+  }
+}
+
+/** Unique (docType, key) only when key is a string — uploads/wishes/rsvp omit key. */
+export async function ensureSharedIndexes(db: Db) {
+  const col = db.collection(MONGODB_COLLECTION);
+  const indexes = await col.indexes();
+  const existing = indexes.find((idx) => idx.name === "docType_1_key_1");
+  const keyFilter = existing?.partialFilterExpression as { key?: { $type?: string } } | undefined;
+  const isPartialUnique = Boolean(existing?.unique) && keyFilter?.key?.$type === "string";
+
+  if (existing && !isPartialUnique) {
+    await col.dropIndex("docType_1_key_1");
+  }
+
+  if (!existing || !isPartialUnique) {
+    await col.createIndex(
+      { docType: 1, key: 1 },
+      {
+        name: "docType_1_key_1",
+        unique: true,
+        partialFilterExpression: { key: { $type: "string" } },
+      },
+    );
   }
 }
