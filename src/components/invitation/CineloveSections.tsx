@@ -13,11 +13,13 @@ import {
 import { Heart } from "lucide-react";
 import { SectionImage, PlaceholderImage } from "./SectionImage";
 import { DaisyBouquet, TulipBouquet, HeartBouquet, EnvelopeBack, EnvelopeFront, SealBadge } from "./Decorations";
+import type { InvitationSide } from "@/types";
 
 interface Props {
   config: SiteConfig;
   sections: ContentSection[];
   pageSections: PageSectionData[];
+  side?: InvitationSide;
 }
 
 type TextProps = { pageSections: PageSectionData[] };
@@ -182,14 +184,17 @@ export function CalendarSection({ config, sections, pageSections }: Props) {
 }
 
 /* ─────────────── INVITE ─────────────── */
-export function InviteSection({ config, sections, pageSections }: Props) {
+export function InviteSection({ config, sections, pageSections, side = "bride" }: Props) {
   const brideImg = getImageAt(sections, "bride", 0);
   const groomImg = getImageAt(sections, "groom", 0);
   const coupleImages = getSectionImages(sections, "couple");
 
   const greeting = getFieldValue(pageSections, "invite", "greeting");
   const guestTitle = getFieldValue(pageSections, "invite", "guestTitle");
-  const eventLabel = getFieldValue(pageSections, "invite", "eventLabel");
+  const eventLabel =
+    side === "groom"
+      ? getFieldValue(pageSections, "invite", "eventLabelGroom")
+      : getFieldValue(pageSections, "invite", "eventLabel");
   const quoteOverride = getFieldValue(pageSections, "invite", "quote");
   const quoteText = quoteOverride.trim() || config.quote;
   const quoteLines = quoteText.split("\n");

@@ -6,7 +6,8 @@ import {
 } from "@/lib/sections";
 import { loadSiteConfig } from "@/lib/site-config-store";
 import { normalizeTheme } from "@/lib/theme";
-import type { PageSectionData } from "@/types";
+import type { InvitationData, InvitationSide, PageSectionData } from "@/types";
+import { configForSide } from "@/lib/invitation-side";
 import ContentSection from "@/models/ContentSection";
 import PageSection from "@/models/PageSection";
 import Wish from "@/models/Wish";
@@ -122,6 +123,23 @@ export async function getWishes(limit = 50) {
   } catch {
     return [];
   }
+}
+
+export async function loadInvitationData(side: InvitationSide): Promise<InvitationData> {
+  const [config, sections, pageSections, wishes] = await Promise.all([
+    getSiteConfig(),
+    getContentSections(),
+    getPageSections(),
+    getWishes(),
+  ]);
+
+  return {
+    config: configForSide(config, side),
+    sections,
+    pageSections,
+    wishes,
+    side,
+  };
 }
 
 export function getImagesByKey(

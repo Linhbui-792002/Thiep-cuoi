@@ -37,7 +37,12 @@ export function InvitationPage({ data }: Props) {
           <CalendarSection config={config} sections={sections} pageSections={pageSections} />
         )}
         {isSectionEnabled(pageSections, "invite") && (
-          <InviteSection config={config} sections={sections} pageSections={pageSections} />
+          <InviteSection
+            config={config}
+            sections={sections}
+            pageSections={pageSections}
+            side={data.side}
+          />
         )}
         {isSectionEnabled(pageSections, "family") && (
           <FamilySection config={config} pageSections={pageSections} />
@@ -51,7 +56,7 @@ export function InvitationPage({ data }: Props) {
         {isSectionEnabled(pageSections, "rsvp_intro") && (
           <RsvpIntroSection pageSections={pageSections} />
         )}
-        <RsvpSection />
+        <RsvpSection side={data.side} />
         {isSectionEnabled(pageSections, "gallery") && (
           <GallerySection sections={sections} pageSections={pageSections} />
         )}

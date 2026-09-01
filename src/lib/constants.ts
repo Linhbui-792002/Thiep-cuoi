@@ -30,6 +30,7 @@ export const DEFAULT_SITE_CONFIG = {
   },
   events: [
     {
+      side: "bride" as const,
       title: "Tham dự lễ vu quy",
       time: "09 : 00 , chủ nhật",
       date: "26 . 04 . 2026",
@@ -38,7 +39,8 @@ export const DEFAULT_SITE_CONFIG = {
       mapUrl: "",
     },
     {
-      title: "Dự buổi tiệc chung vui",
+      side: "groom" as const,
+      title: "Tham dự lễ thành hôn",
       time: "11 : 00 , chủ nhật",
       date: "26 . 04 . 2026",
       location: "Golden Palace",

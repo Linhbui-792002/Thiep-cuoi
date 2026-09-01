@@ -35,7 +35,10 @@ export interface Family {
   mother: string;
 }
 
+export type InvitationSide = "bride" | "groom";
+
 export interface Event {
+  side: InvitationSide;
   title: string;
   time: string;
   date: string;
@@ -76,4 +79,5 @@ export interface InvitationData {
   sections: ContentSection[];
   pageSections: PageSectionData[];
   wishes: Wish[];
+  side: InvitationSide;
 }

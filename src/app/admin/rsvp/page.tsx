@@ -8,6 +8,7 @@ interface RsvpItem {
   name: string;
   attending: boolean;
   guestCount: number;
+  side?: "bride" | "groom";
   createdAt: string;
 }
 
@@ -49,6 +50,7 @@ export default function AdminRsvpPage() {
                       {item.attending
                         ? `Sẽ tham dự · ${item.guestCount} người`
                         : "Không tham dự được"}
+                      {item.side === "groom" ? " · Nhà trai" : " · Nhà gái"}
                     </p>
                   </div>
                   <time className="shrink-0 text-xs text-gray-400">

@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 
-export function RsvpSection() {
+export function RsvpSection({ side }: { side: "bride" | "groom" }) {
   const [name, setName] = useState("");
   const [attending, setAttending] = useState<"yes" | "no">("yes");
   const [guestCount, setGuestCount] = useState("1");
@@ -28,6 +28,7 @@ export function RsvpSection() {
           name: name.trim(),
           attending: attending === "yes",
           guestCount: parseInt(guestCount, 10),
+          side,
         }),
       });
 

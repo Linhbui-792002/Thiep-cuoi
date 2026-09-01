@@ -85,6 +85,30 @@ export default function AdminSettingsPage() {
     setConfig({ ...config, events });
   }
 
+  function addEvent(side: "bride" | "groom") {
+    if (!config) return;
+    setConfig({
+      ...config,
+      events: [
+        ...config.events,
+        {
+          side,
+          title: side === "bride" ? "Tham dự lễ vu quy" : "Tham dự lễ thành hôn",
+          time: "",
+          date: "",
+          location: "",
+          address: "",
+          mapUrl: "",
+        },
+      ],
+    });
+  }
+
+  function removeEvent(index: number) {
+    if (!config || config.events.length <= 1) return;
+    setConfig({ ...config, events: config.events.filter((_, i) => i !== index) });
+  }
+
   if (loading || !config) {
     return (
       <div className="min-h-screen bg-gray-50">
@@ -238,9 +262,28 @@ export default function AdminSettingsPage() {
 
           {config.events.map((event, i) => (
             <div key={i} className="admin-card space-y-4">
-              <h2 className="font-display text-lg text-olive">
-                Sự kiện {i + 1}: {event.title}
-              </h2>
+              <div className="flex items-center justify-between gap-3">
+                <h2 className="font-display text-lg text-olive">
+                  {event.side === "groom" ? "Nhà trai" : "Nhà gái"}: {event.title || "Sự kiện"}
+                </h2>
+                {config.events.length > 1 && (
+                  <button
+                    type="button"
+                    className="text-xs text-red-500"
+                    onClick={() => removeEvent(i)}
+                  >
+                    Xóa
+                  </button>
+                )}
+              </div>
+              <select
+                className="admin-input"
+                value={event.side}
+                onChange={(e) => updateEvent(i, "side", e.target.value)}
+              >
+                <option value="bride">Nhà gái · Lễ vu quy · /nha-gai</option>
+                <option value="groom">Nhà trai · Lễ thành hôn · /nha-trai</option>
+              </select>
               <input
                 className="admin-input"
                 placeholder="Tiêu đề"
@@ -282,6 +325,23 @@ export default function AdminSettingsPage() {
               />
             </div>
           ))}
+
+          <div className="flex flex-wrap gap-3">
+            <button
+              type="button"
+              className="rounded-lg border border-gray-300 px-4 py-2 text-sm text-gray-700"
+              onClick={() => addEvent("bride")}
+            >
+              + Sự kiện nhà gái
+            </button>
+            <button
+              type="button"
+              className="rounded-lg border border-gray-300 px-4 py-2 text-sm text-gray-700"
+              onClick={() => addEvent("groom")}
+            >
+              + Sự kiện nhà trai
+            </button>
+          </div>
 
           <button type="submit" disabled={saving} className="admin-btn">
             {saving ? "Đang lưu..." : "Lưu thay đổi"}

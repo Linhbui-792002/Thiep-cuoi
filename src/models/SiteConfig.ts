@@ -10,6 +10,7 @@ export interface ITheme {
 }
 
 export interface IEvent {
+  side: "bride" | "groom";
   title: string;
   time: string;
   date: string;
@@ -48,6 +49,7 @@ const FamilySchema = new Schema<IFamily>(
 
 const EventSchema = new Schema<IEvent>(
   {
+    side: { type: String, enum: ["bride", "groom"], default: "bride" },
     title: { type: String, required: true },
     time: { type: String, default: "" },
     date: { type: String, default: "" },

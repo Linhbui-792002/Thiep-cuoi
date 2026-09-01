@@ -55,9 +55,15 @@ export const SECTION_GROUPS: SectionGroupDef[] = [
       { key: "guestTitle", label: "Khách mời", type: "text", default: "Quý Khách" },
       {
         key: "eventLabel",
-        label: "Dòng sự kiện",
+        label: "Dòng sự kiện (nhà gái / lễ vu quy)",
         type: "text",
         default: "Tham dự tiệc mừng lễ vu quy của",
+      },
+      {
+        key: "eventLabelGroom",
+        label: "Dòng sự kiện (nhà trai / lễ thành hôn)",
+        type: "text",
+        default: "Tham dự tiệc mừng lễ thành hôn của",
       },
       {
         key: "quote",

@@ -6,6 +6,7 @@ export interface IRsvp {
   name: string;
   attending: boolean;
   guestCount: number;
+  side: "bride" | "groom";
   createdAt: Date;
 }
 
@@ -14,6 +15,7 @@ const RsvpSchema = new Schema<IRsvp>(
     name: { type: String, required: true, trim: true, maxlength: 100 },
     attending: { type: Boolean, required: true },
     guestCount: { type: Number, default: 1, min: 1, max: 10 },
+    side: { type: String, enum: ["bride", "groom"], default: "bride" },
   },
   {
     collection: MONGODB_COLLECTION,
