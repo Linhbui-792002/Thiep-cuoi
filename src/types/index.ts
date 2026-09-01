@@ -53,6 +53,14 @@ export interface ThemeConfig {
   accent: string;
 }
 
+export interface GiftConfig {
+  bankName: string;
+  accountName: string;
+  accountNumber: string;
+  qrImageUrl: string;
+  note: string;
+}
+
 export interface SiteConfig {
   brideName: string;
   groomName: string;
@@ -61,6 +69,7 @@ export interface SiteConfig {
   quote: string;
   monogram: string;
   youtubeMusicUrl: string;
+  gift: GiftConfig;
   groomFamily: Family;
   brideFamily: Family;
   events: Event[];

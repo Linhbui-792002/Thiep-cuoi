@@ -20,6 +20,8 @@ interface Props {
   groomName: string;
   coverImage?: string;
   youtubeMusicUrl?: string;
+  showGift?: boolean;
+  onGiftClick?: () => void;
 }
 
 type FlyingWish = {
@@ -48,6 +50,8 @@ export function FloatingUI({
   groomName,
   coverImage,
   youtubeMusicUrl,
+  showGift = false,
+  onGiftClick,
 }: Props) {
   const videoId = extractYoutubeId(youtubeMusicUrl || "");
   const [hearts, setHearts] = useState<FlyingHeart[]>([]);
@@ -139,10 +143,6 @@ export function FloatingUI({
   function toggleMusic() {
     if (!videoId) return;
     setMusicPlaying((playing) => !playing);
-  }
-
-  function scrollToRsvp() {
-    document.getElementById("rsvp-section")?.scrollIntoView({ behavior: "smooth" });
   }
 
   async function submitWish(e: React.FormEvent) {
@@ -238,13 +238,11 @@ export function FloatingUI({
           <span>Bắn tim</span>
         </button>
 
-        <button
-          className="float-action-btn icon-only"
-          onClick={scrollToRsvp}
-          aria-label="Gửi quà mừng"
-        >
-          <Gift size={17} strokeWidth={1.75} />
-        </button>
+        {showGift ? (
+          <button className="float-action-btn icon-only" onClick={onGiftClick} aria-label="Gửi quà mừng">
+            <Gift size={17} strokeWidth={1.75} />
+          </button>
+        ) : null}
 
         <button className="float-action-btn icon-only relative" aria-label="Thích">
           <ThumbsUp size={17} strokeWidth={1.75} />

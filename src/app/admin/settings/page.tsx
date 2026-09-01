@@ -1,9 +1,10 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { AdminNav } from "@/components/admin/AdminNav";
+import { AdminShell } from "@/components/admin/AdminShell";
 import { ThemeEditor } from "@/components/admin/ThemeEditor";
-import { SiteConfig, ThemeConfig } from "@/types";
+import { SiteConfig, ThemeConfig, GiftConfig } from "@/types";
+import { DEFAULT_SITE_CONFIG } from "@/lib/constants";
 import { DEFAULT_THEME } from "@/lib/theme";
 import { extractYoutubeId } from "@/lib/youtube";
 
@@ -22,6 +23,10 @@ export default function AdminSettingsPage() {
           ...data,
           theme: data.theme || DEFAULT_THEME,
           youtubeMusicUrl: data.youtubeMusicUrl ?? "",
+          gift: {
+            ...DEFAULT_SITE_CONFIG.gift,
+            ...data.gift,
+          },
         });
       })
       .catch((err) => {
@@ -64,6 +69,36 @@ export default function AdminSettingsPage() {
   function updateField(field: keyof SiteConfig, value: string) {
     if (!config) return;
     setConfig({ ...config, [field]: value });
+  }
+
+  function updateGift(field: keyof GiftConfig, value: string) {
+    if (!config) return;
+    setConfig({
+      ...config,
+      gift: { ...DEFAULT_SITE_CONFIG.gift, ...config.gift, [field]: value },
+    });
+  }
+
+  async function uploadQr(files: FileList | null) {
+    if (!files?.[0] || !config) return;
+    setSaving(true);
+    setMessage("");
+    try {
+      const formData = new FormData();
+      formData.append("file", files[0]);
+      const uploadRes = await fetch("/api/upload", { method: "POST", body: formData });
+      const uploadData = await uploadRes.json();
+      if (!uploadRes.ok) throw new Error(uploadData.error || "Upload QR thất bại");
+      setConfig({
+        ...config,
+        gift: { ...DEFAULT_SITE_CONFIG.gift, ...config.gift, qrImageUrl: uploadData.url },
+      });
+      setMessage("Đã thêm ảnh QR. Nhớ bấm Lưu thay đổi.");
+    } catch (err) {
+      setMessage(err instanceof Error ? err.message : "Upload QR thất bại");
+    } finally {
+      setSaving(false);
+    }
   }
 
   function updateFamily(
@@ -111,25 +146,21 @@ export default function AdminSettingsPage() {
 
   if (loading || !config) {
     return (
-      <div className="min-h-screen bg-gray-50">
-        <AdminNav />
-        <main className="mx-auto max-w-3xl px-4 py-8">
-          <p className="text-gray-500">Đang tải...</p>
-        </main>
-      </div>
+      <AdminShell title="Thông tin thiệp">
+        <p className="text-gray-500">Đang tải...</p>
+      </AdminShell>
     );
   }
 
+  const gift = config.gift ?? DEFAULT_SITE_CONFIG.gift;
+
   return (
-    <div className="min-h-screen bg-gray-50">
-      <AdminNav />
-
-      <main className="mx-auto max-w-3xl px-4 py-8">
-        <h1 className="mb-2 font-display text-3xl text-olive">Thông tin thiệp</h1>
-        <p className="mb-6 text-gray-500">Chỉnh sửa nội dung hiển thị trên thiệp cưới</p>
-
+    <AdminShell
+      title="Thông tin thiệp"
+      description="Tên, ngày cưới, và sự kiện nhà trai / nhà gái"
+    >
         {message && (
-          <div className="mb-6 rounded-lg bg-green-50 px-4 py-3 text-sm text-green-700">
+          <div className="mb-5 rounded-xl bg-green-50 px-4 py-3 text-sm text-green-700">
             {message}
           </div>
         )}
@@ -138,7 +169,7 @@ export default function AdminSettingsPage() {
           <ThemeEditor theme={config.theme} onChange={updateTheme} />
 
           <div className="admin-card space-y-4">
-            <h2 className="font-display text-lg text-olive">Cặp đôi</h2>
+            <h2 className="font-serif text-lg text-olive">Cặp đôi</h2>
             <div className="grid gap-4 sm:grid-cols-2">
               <div>
                 <label className="mb-1 block text-xs text-gray-500">Tên cô dâu</label>
@@ -197,7 +228,7 @@ export default function AdminSettingsPage() {
           </div>
 
           <div className="admin-card space-y-4">
-            <h2 className="font-display text-lg text-olive">Nhạc nền YouTube</h2>
+            <h2 className="font-serif text-lg text-olive">Nhạc nền YouTube</h2>
             <p className="text-sm text-gray-500">
               Dán link YouTube. Giá trị được lưu trên MongoDB và phát khi khách bấm nút nhạc trên
               thiệp.
@@ -225,7 +256,89 @@ export default function AdminSettingsPage() {
           </div>
 
           <div className="admin-card space-y-4">
-            <h2 className="font-display text-lg text-olive">Gia đình</h2>
+            <h2 className="font-serif text-lg text-olive">Gửi quà mừng</h2>
+            <p className="text-sm text-gray-500">
+              Khách bấm icon quà trên thiệp sẽ thấy mã QR và thông tin chuyển khoản.
+            </p>
+            <div className="grid gap-4 sm:grid-cols-2">
+              <div>
+                <label className="mb-1 block text-xs text-gray-500">Ngân hàng</label>
+                <input
+                  className="admin-input"
+                  placeholder="Vietcombank"
+                  value={gift.bankName}
+                  onChange={(e) => updateGift("bankName", e.target.value)}
+                />
+              </div>
+              <div>
+                <label className="mb-1 block text-xs text-gray-500">Chủ tài khoản</label>
+                <input
+                  className="admin-input"
+                  placeholder="NGUYEN VAN A"
+                  value={gift.accountName}
+                  onChange={(e) => updateGift("accountName", e.target.value)}
+                />
+              </div>
+            </div>
+            <div>
+              <label className="mb-1 block text-xs text-gray-500">Số tài khoản</label>
+              <input
+                className="admin-input"
+                placeholder="0123456789"
+                value={gift.accountNumber}
+                onChange={(e) => updateGift("accountNumber", e.target.value)}
+              />
+            </div>
+            <div>
+              <label className="mb-1 block text-xs text-gray-500">Ghi chú</label>
+              <input
+                className="admin-input"
+                placeholder="Nội dung CK: Tên khách + Mừng cưới"
+                value={gift.note}
+                onChange={(e) => updateGift("note", e.target.value)}
+              />
+            </div>
+            <div>
+              <label className="mb-1 block text-xs text-gray-500">Ảnh QR</label>
+              <div className="flex flex-wrap items-center gap-4">
+                {gift.qrImageUrl ? (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img
+                    src={gift.qrImageUrl}
+                    alt="QR"
+                    className="h-28 w-28 rounded-lg border border-gray-200 object-contain bg-white"
+                  />
+                ) : (
+                  <div className="flex h-28 w-28 items-center justify-center rounded-lg border-2 border-dashed border-gray-200 text-xs text-gray-400">
+                    Chưa có QR
+                  </div>
+                )}
+                <div className="space-y-2">
+                  <label className="admin-btn inline-block cursor-pointer text-xs">
+                    {gift.qrImageUrl ? "Đổi ảnh QR" : "Upload ảnh QR"}
+                    <input
+                      type="file"
+                      accept="image/*"
+                      className="hidden"
+                      onChange={(e) => uploadQr(e.target.files)}
+                    />
+                  </label>
+                  {gift.qrImageUrl ? (
+                    <button
+                      type="button"
+                      className="block text-xs text-red-500"
+                      onClick={() => updateGift("qrImageUrl", "")}
+                    >
+                      Xóa QR
+                    </button>
+                  ) : null}
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div className="admin-card space-y-4">
+            <h2 className="font-serif text-lg text-olive">Gia đình</h2>
             <div className="grid gap-4 sm:grid-cols-2">
               <div className="space-y-3">
                 <p className="text-sm font-medium text-gray-700">Nhà trai</p>
@@ -263,7 +376,7 @@ export default function AdminSettingsPage() {
           {config.events.map((event, i) => (
             <div key={i} className="admin-card space-y-4">
               <div className="flex items-center justify-between gap-3">
-                <h2 className="font-display text-lg text-olive">
+                <h2 className="font-serif text-lg text-olive">
                   {event.side === "groom" ? "Nhà trai" : "Nhà gái"}: {event.title || "Sự kiện"}
                 </h2>
                 {config.events.length > 1 && (
@@ -343,11 +456,10 @@ export default function AdminSettingsPage() {
             </button>
           </div>
 
-          <button type="submit" disabled={saving} className="admin-btn">
+          <button type="submit" disabled={saving} className="admin-btn w-full sm:w-auto">
             {saving ? "Đang lưu..." : "Lưu thay đổi"}
           </button>
         </form>
-      </main>
-    </div>
+    </AdminShell>
   );
 }

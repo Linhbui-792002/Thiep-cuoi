@@ -3,7 +3,7 @@ import { DEFAULT_SITE_CONFIG } from "@/lib/constants";
 import { DOC_TYPES, MONGODB_COLLECTION } from "@/lib/db-config";
 import { stripMongoFields } from "@/lib/mongo-fields";
 import { normalizeTheme } from "@/lib/theme";
-import type { Event, SiteConfig as SiteConfigType } from "@/types";
+import type { Event, GiftConfig, SiteConfig as SiteConfigType } from "@/types";
 
 function normalizeEvents(events: unknown): Event[] {
   const list = Array.isArray(events) && events.length > 0 ? events : DEFAULT_SITE_CONFIG.events;
@@ -23,12 +23,25 @@ function normalizeEvents(events: unknown): Event[] {
   });
 }
 
+function normalizeGift(gift: unknown): GiftConfig {
+  const fallback = DEFAULT_SITE_CONFIG.gift;
+  const raw = gift && typeof gift === "object" ? (gift as Partial<GiftConfig>) : {};
+  return {
+    bankName: raw.bankName ?? fallback.bankName,
+    accountName: raw.accountName ?? fallback.accountName,
+    accountNumber: raw.accountNumber ?? fallback.accountNumber,
+    qrImageUrl: raw.qrImageUrl ?? fallback.qrImageUrl,
+    note: raw.note ?? fallback.note,
+  };
+}
+
 function toPlain(config: unknown): SiteConfigType {
   const c = JSON.parse(JSON.stringify(config)) as Partial<SiteConfigType>;
   return {
     ...DEFAULT_SITE_CONFIG,
     ...c,
     youtubeMusicUrl: c.youtubeMusicUrl ?? "",
+    gift: normalizeGift(c.gift),
     theme: normalizeTheme(c.theme),
     events: normalizeEvents(c.events),
   };

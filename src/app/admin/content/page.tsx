@@ -2,7 +2,7 @@
 
 import { useEffect, useState, useRef } from "react";
 import Image from "next/image";
-import { AdminNav } from "@/components/admin/AdminNav";
+import { AdminShell } from "@/components/admin/AdminShell";
 import { PageSectionData } from "@/types";
 import { IMAGE_SECTION_LABELS } from "@/lib/sections";
 import { ChevronDown, ChevronUp, Eye, EyeOff, Save } from "lucide-react";
@@ -152,27 +152,19 @@ export default function AdminContentPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gray-50">
-        <AdminNav />
-        <main className="mx-auto max-w-4xl px-4 py-8">
-          <p className="text-gray-500">Đang tải...</p>
-        </main>
-      </div>
+      <AdminShell title="Nội dung & ảnh">
+        <p className="text-gray-500">Đang tải...</p>
+      </AdminShell>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <AdminNav />
-
-      <main className="mx-auto max-w-4xl px-4 py-8">
-        <h1 className="mb-2 font-serif text-3xl text-primary">Quản lý Sections</h1>
-        <p className="mb-6 text-gray-500">
-          Chỉnh nội dung và ảnh theo từng section trên thiệp
-        </p>
-
+    <AdminShell
+      title="Nội dung & ảnh"
+      description="Chỉnh chữ và ảnh theo từng phần trên thiệp"
+    >
         {message && (
-          <div className="mb-6 rounded-lg bg-green-50 px-4 py-3 text-sm text-green-700">
+          <div className="mb-5 rounded-xl bg-green-50 px-4 py-3 text-sm text-green-700">
             {message}
           </div>
         )}
@@ -188,16 +180,16 @@ export default function AdminContentPage() {
               >
                 <button
                   type="button"
-                  className="flex w-full items-center justify-between gap-4 text-left"
+                  className="flex w-full items-center justify-between gap-3 text-left"
                   onClick={() => setExpanded(isOpen ? null : section.key)}
                 >
-                  <div className="flex items-center gap-3">
-                    <span className="flex h-8 w-8 items-center justify-center rounded-full bg-primary/10 font-label text-sm font-semibold text-primary">
+                  <div className="flex min-w-0 items-center gap-3">
+                    <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-primary/10 font-label text-sm font-semibold text-primary">
                       {section.order}
                     </span>
-                    <div>
-                      <h2 className="font-serif text-lg text-primary">{section.title}</h2>
-                      <p className="text-sm text-gray-500">{section.description}</p>
+                    <div className="min-w-0">
+                      <h2 className="font-serif text-base text-primary sm:text-lg">{section.title}</h2>
+                      <p className="hidden text-sm text-gray-500 sm:block">{section.description}</p>
                     </div>
                   </div>
                   <div className="flex items-center gap-2">
@@ -375,7 +367,6 @@ export default function AdminContentPage() {
             );
           })}
         </div>
-      </main>
-    </div>
+    </AdminShell>
   );
 }

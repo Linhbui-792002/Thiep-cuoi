@@ -34,6 +34,32 @@ export function formatDateSlash(iso: string) {
   return `${dd}/${mm}/${d.getFullYear()}`;
 }
 
+export type AlbumRow = { type: "row"; images: ImageItem[] } | { type: "wide"; image: ImageItem };
+
+/** CineLove: 3 ảnh dọc → 1 ảnh ngang full, lặp lại. */
+export function buildAlbumRows(images: ImageItem[]): AlbumRow[] {
+  const rows: AlbumRow[] = [];
+  let i = 0;
+  while (i < images.length) {
+    const left = images.length - i;
+    if (left >= 4) {
+      rows.push({ type: "row", images: images.slice(i, i + 3) });
+      rows.push({ type: "wide", image: images[i + 3] });
+      i += 4;
+    } else if (left === 3) {
+      rows.push({ type: "row", images: images.slice(i, i + 3) });
+      i += 3;
+    } else if (left === 2) {
+      rows.push({ type: "row", images: images.slice(i, i + 2) });
+      i += 2;
+    } else {
+      rows.push({ type: "wide", image: images[i] });
+      i += 1;
+    }
+  }
+  return rows;
+}
+
 /** Lưới tháng, tuần bắt đầu Thứ 2 */
 export function buildMonthGrid(year: number, monthIndex: number) {
   const firstWeekday = new Date(year, monthIndex, 1).getDay();

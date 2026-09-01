@@ -156,30 +156,11 @@ export const SECTION_GROUPS: SectionGroupDef[] = [
       { key: "linkText", label: "Text link album", type: "text", default: "Xem thêm Album" },
     ],
   },
-  {
-    key: "bottom",
-    title: "Footer — Phong thiệp cuối",
-    description: "Phong thiệp và thông tin cuối trang",
-    order: 9,
-    imageKeys: ["envelope"],
-    fields: [
-      { key: "scriptTitle", label: "Tiêu đề script", type: "text", default: "We got married" },
-      {
-        key: "venueLabel",
-        label: "Nhãn địa điểm",
-        type: "text",
-        default: "",
-        hint: "Để trống = lấy tên địa điểm sự kiện cuối",
-      },
-      { key: "floorLabel", label: "Nhãn tầng", type: "text", default: "- tầng 3 -" },
-    ],
-  },
 ];
 
 export const IMAGE_SECTION_LABELS: Record<string, string> = {
   hero: "Polaroid bìa — ảnh 1 trái, ảnh 2 phải",
   calendar: "Ảnh cạnh lịch — ảnh 1",
-  envelope: "Phong thiệp cuối — ảnh 1 trái, ảnh 2 phải",
   couple: "Ảnh cặp đôi",
   bride: "Ảnh cô dâu — ảnh 1",
   groom: "Ảnh chú rể — ảnh 1",

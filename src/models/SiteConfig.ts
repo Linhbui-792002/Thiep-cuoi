@@ -24,6 +24,14 @@ export interface IFamily {
   mother: string;
 }
 
+export interface IGift {
+  bankName: string;
+  accountName: string;
+  accountNumber: string;
+  qrImageUrl: string;
+  note: string;
+}
+
 export interface ISiteConfig {
   _id: string;
   brideName: string;
@@ -33,6 +41,7 @@ export interface ISiteConfig {
   quote: string;
   monogram: string;
   youtubeMusicUrl: string;
+  gift: IGift;
   groomFamily: IFamily;
   brideFamily: IFamily;
   events: IEvent[];
@@ -60,6 +69,17 @@ const EventSchema = new Schema<IEvent>(
   { _id: false },
 );
 
+const GiftSchema = new Schema<IGift>(
+  {
+    bankName: { type: String, default: "" },
+    accountName: { type: String, default: "" },
+    accountNumber: { type: String, default: "" },
+    qrImageUrl: { type: String, default: "" },
+    note: { type: String, default: "" },
+  },
+  { _id: false },
+);
+
 const ThemeSchema = new Schema<ITheme>(
   {
     primary: { type: String, default: DEFAULT_THEME.primary },
@@ -78,6 +98,7 @@ const SiteConfigSchema = new Schema<ISiteConfig>(
     quote: { type: String, default: DEFAULT_SITE_CONFIG.quote },
     monogram: { type: String, default: DEFAULT_SITE_CONFIG.monogram },
     youtubeMusicUrl: { type: String, default: "" },
+    gift: { type: GiftSchema, default: () => DEFAULT_SITE_CONFIG.gift },
     groomFamily: { type: FamilySchema, default: () => DEFAULT_SITE_CONFIG.groomFamily },
     brideFamily: { type: FamilySchema, default: () => DEFAULT_SITE_CONFIG.brideFamily },
     events: { type: [EventSchema], default: () => DEFAULT_SITE_CONFIG.events },

@@ -1,7 +1,9 @@
 "use client";
 
+import { useState } from "react";
 import { InvitationData } from "@/types";
 import { isSectionEnabled } from "@/lib/sections";
+import { DEFAULT_SITE_CONFIG } from "@/lib/constants";
 import { ThemeProvider } from "./ThemeProvider";
 import {
   HeroSection,
@@ -11,11 +13,11 @@ import {
   EventSection,
   RsvpIntroSection,
   GallerySection,
-  BottomSection,
   ThankYouSection,
 } from "./CineloveSections";
 import { RsvpSection } from "./RsvpSection";
 import { FloatingUI } from "./FloatingUI";
+import { GiftModal, GiftSection, isGiftConfigured } from "./GiftSection";
 
 interface Props {
   data: InvitationData;
@@ -23,9 +25,10 @@ interface Props {
 
 export function InvitationPage({ data }: Props) {
   const { config, sections, pageSections, wishes } = data;
-  const coverImage =
-    sections.find((s) => s.key === "hero")?.images[0]?.url ||
-    sections.find((s) => s.key === "envelope")?.images[0]?.url;
+  const [giftOpen, setGiftOpen] = useState(false);
+  const coverImage = sections.find((s) => s.key === "hero")?.images[0]?.url;
+  const gift = config.gift ?? DEFAULT_SITE_CONFIG.gift;
+  const showGift = isGiftConfigured(gift);
 
   return (
     <ThemeProvider theme={config.theme} className="cinelove-page">
@@ -60,9 +63,8 @@ export function InvitationPage({ data }: Props) {
         {isSectionEnabled(pageSections, "gallery") && (
           <GallerySection sections={sections} pageSections={pageSections} />
         )}
-        {isSectionEnabled(pageSections, "bottom") && (
-          <BottomSection config={config} sections={sections} pageSections={pageSections} />
-        )}
+        {showGift && <GiftSection gift={gift} onOpen={() => setGiftOpen(true)} />}
+        <div className="h-24" />
       </div>
 
       <FloatingUI
@@ -71,6 +73,15 @@ export function InvitationPage({ data }: Props) {
         groomName={config.groomName}
         coverImage={coverImage}
         youtubeMusicUrl={config.youtubeMusicUrl}
+        showGift={showGift}
+        onGiftClick={() => setGiftOpen(true)}
+      />
+
+      <GiftModal
+        gift={gift}
+        open={giftOpen}
+        onClose={() => setGiftOpen(false)}
+        coupleName={`${config.brideName} & ${config.groomName}`}
       />
     </ThemeProvider>
   );

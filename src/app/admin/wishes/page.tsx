@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { AdminNav } from "@/components/admin/AdminNav";
+import { AdminShell } from "@/components/admin/AdminShell";
 import { Wish } from "@/types";
 
 export default function AdminWishesPage() {
@@ -16,39 +16,28 @@ export default function AdminWishesPage() {
   }, []);
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <AdminNav />
-
-      <main className="mx-auto max-w-3xl px-4 py-8">
-        <h1 className="mb-2 font-display text-3xl text-olive">Lời chúc</h1>
-        <p className="mb-6 text-gray-500">
-          {wishes.length} lời chúc từ khách mời
-        </p>
-
-        {loading ? (
-          <p className="text-gray-500">Đang tải...</p>
-        ) : wishes.length === 0 ? (
-          <div className="admin-card text-center text-gray-400">
-            Chưa có lời chúc nào
-          </div>
-        ) : (
-          <div className="space-y-4">
-            {wishes.map((wish) => (
-              <div key={wish._id} className="admin-card">
-                <div className="flex items-start justify-between gap-4">
-                  <div>
-                    <p className="font-medium text-olive">{wish.name}</p>
-                    <p className="mt-2 text-gray-700">{wish.message}</p>
-                  </div>
-                  <time className="shrink-0 text-xs text-gray-400">
-                    {new Date(wish.createdAt).toLocaleString("vi-VN")}
-                  </time>
+    <AdminShell title="Lời chúc" description={`${wishes.length} lời chúc từ khách mời`}>
+      {loading ? (
+        <p className="text-gray-500">Đang tải...</p>
+      ) : wishes.length === 0 ? (
+        <div className="admin-card text-center text-gray-400">Chưa có lời chúc nào</div>
+      ) : (
+        <div className="space-y-3">
+          {wishes.map((wish) => (
+            <div key={wish._id} className="admin-card">
+              <div className="flex flex-col gap-1 sm:flex-row sm:items-start sm:justify-between sm:gap-4">
+                <div>
+                  <p className="font-medium text-olive">{wish.name}</p>
+                  <p className="mt-2 text-sm leading-relaxed text-gray-700 sm:text-base">{wish.message}</p>
                 </div>
+                <time className="shrink-0 text-xs text-gray-400">
+                  {new Date(wish.createdAt).toLocaleString("vi-VN")}
+                </time>
               </div>
-            ))}
-          </div>
-        )}
-      </main>
-    </div>
+            </div>
+          ))}
+        </div>
+      )}
+    </AdminShell>
   );
 }

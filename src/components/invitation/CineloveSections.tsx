@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import Image from "next/image";
 import { SiteConfig, ContentSection, ImageItem, PageSectionData } from "@/types";
 import { getFieldValue } from "@/lib/sections";
@@ -9,6 +10,7 @@ import {
   parseISODate,
   formatDateSlash,
   buildMonthGrid,
+  buildAlbumRows,
 } from "@/lib/images";
 import { Heart } from "lucide-react";
 import { SectionImage, PlaceholderImage } from "./SectionImage";
@@ -394,97 +396,78 @@ export function GallerySection({
   pageSections: PageSectionData[];
 }) {
   const images = getSectionImages(sections, "gallery");
+  const [active, setActive] = useState<ImageItem | null>(null);
   if (images.length === 0) return null;
 
   const linkText = getFieldValue(pageSections, "gallery", "linkText");
-  const rows: ImageItem[][] = [];
-  for (let i = 0; i < images.length; i += 3) {
-    rows.push(images.slice(i, i + 3));
-  }
+  const rows = buildAlbumRows(images);
 
   return (
     <section className="pb-4 pt-6">
-      {rows.map((row, ri) => (
-        <div key={ri} className={row.length === 1 ? "px-0" : "gallery-grid-3 px-0"}>
-          {row.map((img) => (
-            <div
-              key={img.url}
-              className={`relative overflow-hidden ${row.length === 1 ? "aspect-[4/3] w-full" : "aspect-[3/4]"}`}
+      <div className="album">
+        {rows.map((row, ri) =>
+          row.type === "wide" ? (
+            <button
+              key={`${row.image.url}-${ri}`}
+              type="button"
+              className="album-cell album-wide"
+              onClick={() => setActive(row.image)}
             >
               <Image
-                src={img.url}
-                alt={img.alt || "Gallery"}
+                src={row.image.url}
+                alt={row.image.alt || "Gallery"}
                 fill
                 className="object-cover"
-                sizes="(max-width: 430px) 33vw"
-                unoptimized={img.url.startsWith("/api/")}
+                sizes="430px"
+                unoptimized={row.image.url.startsWith("/api/")}
               />
+            </button>
+          ) : (
+            <div
+              key={ri}
+              className={`album-row ${row.images.length === 2 ? "album-row-2" : "album-row-3"}`}
+            >
+              {row.images.map((img) => (
+                <button
+                  key={img.url}
+                  type="button"
+                  className="album-cell album-portrait"
+                  onClick={() => setActive(img)}
+                >
+                  <Image
+                    src={img.url}
+                    alt={img.alt || "Gallery"}
+                    fill
+                    className="object-cover"
+                    sizes="150px"
+                    unoptimized={img.url.startsWith("/api/")}
+                  />
+                </button>
+              ))}
             </div>
-          ))}
-        </div>
-      ))}
+          ),
+        )}
+      </div>
 
       {linkText && (
         <div className="mt-4 text-center">
-          <span className="font-serif text-sm italic text-olive/70">{linkText}</span>
+          <span className="font-script text-[22px] text-olive">{linkText}</span>
         </div>
       )}
-    </section>
-  );
-}
 
-/* ─────────────── BOTTOM ENVELOPE ─────────────── */
-export function BottomSection({ config, sections, pageSections }: Props) {
-  const img1 = getImageAt(sections, "envelope", 0);
-  const img2 = getImageAt(sections, "envelope", 1);
-  const venue = config.events[config.events.length - 1];
-
-  const scriptTitle = getFieldValue(pageSections, "bottom", "scriptTitle");
-  const venueLabelOverride = getFieldValue(pageSections, "bottom", "venueLabel");
-  const venueLabel = venueLabelOverride.trim() || venue?.location || "Trung tâm hội nghị tiệc cưới";
-  const floorLabel = getFieldValue(pageSections, "bottom", "floorLabel");
-
-  return (
-    <section className="relative overflow-hidden px-4 pb-32 pt-10">
-      <p className="text-center font-script text-[21px] font-medium text-olive">{scriptTitle}</p>
-
-      <div className="relative mx-auto mt-6 h-[300px] w-full max-w-[320px]">
-        {img1 && (
-          <div
-            className="polaroid absolute left-0 top-4 z-10 w-[118px]"
-            style={{ transform: "rotate(-8deg)" }}
-          >
-            <SectionImage images={[img1]} className="h-[140px] w-full" />
-          </div>
-        )}
-        {img2 && (
-          <div
-            className="polaroid absolute right-0 top-0 z-[3] w-[122px]"
-            style={{ transform: "rotate(7deg)" }}
-          >
-            <SectionImage images={[img2]} className="h-[148px] w-full" />
-          </div>
-        )}
-
-        <div className="absolute bottom-0 left-1/2 z-[12] h-[158px] w-[250px] -translate-x-1/2">
-          <EnvelopeFront className="envelope-svg h-full w-full" uid="bottom-front" />
-          <div className="pointer-events-none absolute bottom-7 left-1/2 z-10 w-[70%] -translate-x-1/2 text-center text-white">
-            <p className="font-label text-[8px] uppercase tracking-widest opacity-80">
-              {venueLabel}
-            </p>
-            <p className="font-label text-[8px] uppercase tracking-widest opacity-60">
-              {floorLabel}
-            </p>
-            <p className="mt-1 font-serif text-sm">{formatDateSlash(config.weddingDate)}</p>
-          </div>
-          <SealBadge
-            className="seal-on-envelope seal-on-envelope-sm"
-            monogram={config.monogram}
-            ringText={`${scriptTitle}  •  ${config.brideName} & ${config.groomName}`}
-            uid="bottom"
+      {active && (
+        <div
+          className="fixed inset-0 z-[160] flex items-center justify-center bg-black/80 p-4"
+          onClick={() => setActive(null)}
+        >
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
+            src={active.url}
+            alt={active.alt || "Album"}
+            className="max-h-[88dvh] max-w-full object-contain"
           />
         </div>
-      </div>
+      )}
     </section>
   );
 }

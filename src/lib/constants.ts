@@ -3,7 +3,6 @@ import { DEFAULT_THEME } from "./theme";
 export const SECTION_DEFINITIONS = [
   { key: "hero", title: "Polaroid bìa", description: "Ảnh 1 = trái, ảnh 2 = phải" },
   { key: "calendar", title: "Ảnh cạnh lịch", description: "Ảnh 1 = cạnh calendar" },
-  { key: "envelope", title: "Phong thiệp cuối trang", description: "Ảnh 1 = trái, ảnh 2 = phải" },
   { key: "couple", title: "Ảnh cặp đôi", description: "Ảnh phụ phần lời mời" },
   { key: "bride", title: "Ảnh cô dâu", description: "Ảnh 1 = chân dung cô dâu" },
   { key: "groom", title: "Ảnh chú rể", description: "Ảnh 1 = chân dung chú rể" },
@@ -20,6 +19,13 @@ export const DEFAULT_SITE_CONFIG = {
   quote: "Em là bình yên anh muốn giữ\nAnh là hạnh phúc em muốn trao.",
   monogram: "TL",
   youtubeMusicUrl: "",
+  gift: {
+    bankName: "",
+    accountName: "",
+    accountNumber: "",
+    qrImageUrl: "",
+    note: "",
+  },
   groomFamily: {
     father: "Ông Nguyễn Mạnh Tiến",
     mother: "Bà Lê Phương Lan",

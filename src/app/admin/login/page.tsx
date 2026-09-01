@@ -39,8 +39,8 @@ export default function AdminLoginPage() {
         onSubmit={handleSubmit}
         className="w-full max-w-sm rounded-2xl bg-white p-8 shadow-xl"
       >
-        <h1 className="mb-2 text-center font-display text-2xl text-olive">
-          Quản Trị Thiệp Cưới
+        <h1 className="mb-2 text-center font-serif text-2xl text-olive">
+          Quản trị thiệp cưới
         </h1>
         <p className="mb-6 text-center text-sm text-gray-500">Đăng nhập để tiếp tục</p>
 

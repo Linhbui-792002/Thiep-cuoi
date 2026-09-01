@@ -1,14 +1,22 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { INVITATION_SIDES, type InvitationSide } from "@/lib/invitation-side";
 
-export function RsvpSection({ side }: { side: "bride" | "groom" }) {
+export function RsvpSection({ side }: { side: InvitationSide }) {
   const [name, setName] = useState("");
+  const [selectedSide, setSelectedSide] = useState<InvitationSide>(side);
   const [attending, setAttending] = useState<"yes" | "no">("yes");
   const [guestCount, setGuestCount] = useState("1");
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState("");
   const [success, setSuccess] = useState(false);
+
+  useEffect(() => {
+    setSelectedSide(side);
+  }, [side]);
+
+  const meta = INVITATION_SIDES[selectedSide];
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -28,7 +36,7 @@ export function RsvpSection({ side }: { side: "bride" | "groom" }) {
           name: name.trim(),
           attending: attending === "yes",
           guestCount: parseInt(guestCount, 10),
-          side,
+          side: selectedSide,
         }),
       });
 
@@ -49,11 +57,41 @@ export function RsvpSection({ side }: { side: "bride" | "groom" }) {
   return (
     <section className="bg-primary px-4 py-8" id="rsvp-section">
       <form onSubmit={handleSubmit} className="rsvp-card mx-auto max-w-[360px]">
-        <h3 className="mb-5 text-center font-serif text-xl font-semibold text-gray-800">
+        <h3 className="text-center font-serif text-xl font-semibold text-gray-800">
           Xác nhận tham dự
         </h3>
+        <p className="mt-1 text-center font-label text-[11px] uppercase tracking-[0.16em] text-olive">
+          {meta.label} · {meta.ceremony}
+        </p>
 
-        <div className="space-y-4">
+        <div className="mt-5 space-y-4">
+          <div>
+            <p className="mb-2 font-label text-xs font-medium text-gray-600">Bạn nhận thiệp bên nào?</p>
+            <div className="grid grid-cols-2 gap-2">
+              {(["bride", "groom"] as const).map((value) => {
+                const item = INVITATION_SIDES[value];
+                const active = selectedSide === value;
+                return (
+                  <button
+                    key={value}
+                    type="button"
+                    onClick={() => setSelectedSide(value)}
+                    className={`rounded-xl border px-2 py-2.5 text-center transition ${
+                      active
+                        ? "border-olive bg-olive text-white"
+                        : "border-gray-200 bg-white text-gray-600"
+                    }`}
+                  >
+                    <span className="block font-label text-xs font-semibold">{item.label}</span>
+                    <span className={`mt-0.5 block text-[10px] ${active ? "text-white/80" : "text-gray-400"}`}>
+                      {item.ceremony}
+                    </span>
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+
           <div>
             <label className="mb-1.5 block font-label text-xs font-medium text-gray-600">
               Họ và tên
@@ -70,7 +108,7 @@ export function RsvpSection({ side }: { side: "bride" | "groom" }) {
 
           <div>
             <label className="mb-2 block font-label text-xs font-medium text-gray-600">
-              Bạn sẽ tham dự chứ?
+              Bạn sẽ tham dự {meta.ceremony.toLowerCase()} chứ?
             </label>
             <div className="space-y-2">
               <label className="flex cursor-pointer items-center gap-2.5">
@@ -120,7 +158,7 @@ export function RsvpSection({ side }: { side: "bride" | "groom" }) {
           {message && <p className="text-center font-label text-sm text-red-500">{message}</p>}
           {success && (
             <p className="text-center font-label text-sm text-green-600">
-              Cảm ơn bạn! Xác nhận đã được ghi nhận.
+              Cảm ơn bạn! Đã ghi nhận cho {INVITATION_SIDES[selectedSide].label}.
             </p>
           )}
 
