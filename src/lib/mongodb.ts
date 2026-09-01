@@ -34,6 +34,8 @@ export async function connectDB() {
     cached.promise = mongoose.connect(MONGODB_URI, {
       bufferCommands: false,
       serverSelectionTimeoutMS: 8000,
+      // Atlas reserves `admin` / `local` / `config` — never use those as the app DB.
+      dbName: process.env.MONGODB_DB || "thiep_cuoi",
     });
   }
 

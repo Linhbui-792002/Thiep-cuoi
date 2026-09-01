@@ -1,6 +1,6 @@
 import type { Schema } from "mongoose";
 
-/** Database: config | Collection: db_cuoi_tun */
+/** Database: thiep_cuoi | Collection: db_cuoi_tun */
 export const MONGODB_COLLECTION = "db_cuoi_tun";
 
 export const DOC_TYPES = {
