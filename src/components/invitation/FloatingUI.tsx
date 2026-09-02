@@ -37,7 +37,11 @@ type FlyingHeart = {
   drift: string;
   size: number;
   duration: string;
+  color: string;
+  spin: string;
 };
+
+const HEART_COLORS = ["#ff1a4a", "#ff2d55", "#ff3d6e", "#e01248"];
 
 function clip(text: string, max: number) {
   const t = text.trim();
@@ -58,7 +62,7 @@ export function FloatingUI({
   const [flyingWishes, setFlyingWishes] = useState<FlyingWish[]>([]);
   const [wishOpen, setWishOpen] = useState(false);
   const [musicPlaying, setMusicPlaying] = useState(Boolean(videoId));
-  const [likeCount] = useState(2);
+  const [likeCount, setLikeCount] = useState<number | null>(null);
   const [wishes, setWishes] = useState<Wish[]>(initialWishes);
   const [name, setName] = useState("");
   const [message, setMessage] = useState("");
@@ -90,22 +94,53 @@ export function FloatingUI({
   const spawnHearts = useCallback((count = 7) => {
     const burst: FlyingHeart[] = Array.from({ length: count }, (_, i) => ({
       id: Date.now() + Math.random() + i,
-      x: 18 + Math.random() * 64,
-      drift: `${Math.round((Math.random() - 0.5) * 56)}px`,
-      size: 13 + Math.round(Math.random() * 9),
-      duration: `${(1.6 + Math.random() * 0.7).toFixed(2)}s`,
+      x: 16 + Math.random() * 68,
+      drift: `${Math.round((Math.random() - 0.5) * 72)}px`,
+      size: 18 + Math.round(Math.random() * 14),
+      duration: `${(1.85 + Math.random() * 0.85).toFixed(2)}s`,
+      color: HEART_COLORS[Math.floor(Math.random() * HEART_COLORS.length)],
+      spin: `${Math.round((Math.random() - 0.5) * 42)}deg`,
     }));
     setHearts((prev) => [...prev, ...burst].slice(-16));
     burst.forEach((h) => {
       window.setTimeout(() => {
         setHearts((prev) => prev.filter((item) => item.id !== h.id));
-      }, 2400);
+      }, 2900);
     });
   }, []);
 
   const shootHeart = useCallback(() => {
     spawnHearts(8);
+    setLikeCount((n) => (n ?? 0) + 1);
+    void fetch("/api/hearts", { method: "POST" })
+      .then(async (res) => {
+        const data = (await res.json().catch(() => null)) as { count?: number } | null;
+        if (res.ok && typeof data?.count === "number") {
+          const saved = data.count;
+          setLikeCount((n) => Math.max(n ?? 0, saved));
+          return;
+        }
+        setLikeCount((n) => Math.max(0, (n ?? 0) - 1));
+      })
+      .catch(() => {
+        setLikeCount((n) => Math.max(0, (n ?? 0) - 1));
+      });
   }, [spawnHearts]);
+
+  useEffect(() => {
+    let cancelled = false;
+    fetch("/api/hearts")
+      .then((res) => res.json())
+      .then((data: { count?: number }) => {
+        if (cancelled || typeof data.count !== "number") return;
+        const saved = data.count;
+        setLikeCount((n) => Math.max(n ?? 0, saved));
+      })
+      .catch(() => {});
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   useEffect(() => {
     if (!videoId || !musicPlaying) return;
@@ -139,6 +174,20 @@ export function FloatingUI({
       window.clearInterval(interval);
     };
   }, [wishOpen, spawnWish]);
+
+  const autoHearts = (likeCount ?? 0) > 0;
+  useEffect(() => {
+    if (!autoHearts) return;
+    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+
+    const tick = () => spawnHearts(7);
+    const start = window.setTimeout(tick, 2400);
+    const interval = window.setInterval(tick, 5200);
+    return () => {
+      window.clearTimeout(start);
+      window.clearInterval(interval);
+    };
+  }, [autoHearts, spawnHearts]);
 
   function toggleMusic() {
     if (!videoId) return;
@@ -218,11 +267,13 @@ export function FloatingUI({
             className="heart-float"
             style={{
               left: `${h.x}%`,
+              color: h.color,
               ["--drift" as string]: h.drift,
               ["--dur" as string]: h.duration,
+              ["--spin" as string]: h.spin,
             }}
           >
-            <FloatingHeart size={h.size} className="drop-shadow-sm" />
+            <FloatingHeart size={h.size} />
           </div>
         ))}
       </div>
@@ -233,7 +284,7 @@ export function FloatingUI({
           <span>Gửi lời chúc...</span>
         </button>
 
-        <button className="float-action-btn" onClick={shootHeart}>
+        <button className="float-action-btn" onClick={shootHeart} type="button">
           <Sparkles size={15} strokeWidth={1.75} />
           <span>Bắn tim</span>
         </button>
@@ -244,11 +295,18 @@ export function FloatingUI({
           </button>
         ) : null}
 
-        <button className="float-action-btn icon-only relative" aria-label="Thích">
+        <button
+          className="float-action-btn icon-only relative"
+          type="button"
+          onClick={shootHeart}
+          aria-label={`Bắn tim, ${likeCount ?? 0} lượt`}
+        >
           <ThumbsUp size={17} strokeWidth={1.75} />
-          <span className="absolute -right-0.5 -top-0.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-red-500 px-0.5 text-[9px] font-medium text-white">
-            {likeCount}
-          </span>
+          {likeCount !== null ? (
+            <span className="absolute -right-0.5 -top-0.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-red-500 px-0.5 text-[9px] font-medium text-white">
+              {likeCount}
+            </span>
+          ) : null}
         </button>
       </div>
 

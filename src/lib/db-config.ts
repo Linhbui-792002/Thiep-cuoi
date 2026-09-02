@@ -11,6 +11,7 @@ export const DOC_TYPES = {
   WISH: "wish",
   RSVP: "rsvp",
   UPLOAD: "upload",
+  HEART: "heart",
 } as const;
 
 const QUERY_HOOKS = [

@@ -148,6 +148,44 @@ body {
   font-weight: 500;
 }
 
+.hero-couple-names {
+  position: relative;
+  display: flex;
+  flex-wrap: nowrap;
+  align-items: baseline;
+  justify-content: center;
+  gap: 0.35em;
+  font-size: 38px;
+  font-weight: 400;
+  line-height: 1;
+}
+
+.hero-couple-probe {
+  position: absolute;
+  left: 0;
+  top: 0;
+  white-space: nowrap;
+  visibility: hidden;
+  pointer-events: none;
+}
+
+.hero-couple-name {
+  white-space: nowrap;
+}
+
+.hero-couple-names.is-stacked {
+  flex-direction: column;
+  align-items: center;
+  gap: 0.12em;
+  line-height: 1.05;
+}
+
+.hero-couple-names.is-stacked .hero-couple-and {
+  font-size: 0.72em;
+  line-height: 1;
+  opacity: 0.85;
+}
+
 .font-body {
   font-family: var(--font-body), Georgia, serif;
 }
@@ -969,7 +1007,7 @@ body {
   left: 50%;
   top: 0;
   bottom: 0;
-  z-index: 85;
+  z-index: 96;
   width: 100%;
   max-width: 430px;
   transform: translateX(-50%);
@@ -979,25 +1017,31 @@ body {
 
 @keyframes float-heart {
   0% {
-    opacity: 0.95;
-    transform: translateX(0) translateY(0) scale(0.55);
+    opacity: 0;
+    transform: translateX(0) translateY(8px) scale(0.38) rotate(var(--spin));
   }
-  14% {
+  10% {
     opacity: 1;
-    transform: translateX(calc(var(--drift) * 0.35)) translateY(-32px) scale(1);
+    transform: translateX(calc(var(--drift) * 0.2)) translateY(-26px) scale(1.16) rotate(calc(var(--spin) * 0.3));
+  }
+  70% {
+    opacity: 1;
+    transform: translateX(calc(var(--drift) * 0.78)) translateY(-32vh) scale(1) rotate(calc(var(--spin) * -0.7));
   }
   100% {
     opacity: 0;
-    transform: translateX(var(--drift)) translateY(-38vh) scale(1.08);
+    transform: translateX(var(--drift)) translateY(-48vh) scale(0.9) rotate(calc(var(--spin) * -1.2));
   }
 }
 
 .heart-float {
   position: absolute;
-  bottom: 72px;
-  animation: float-heart var(--dur, 1.8s) ease-out forwards;
+  bottom: 76px;
+  color: #ff1a4a;
+  animation: float-heart var(--dur, 2s) cubic-bezier(0.22, 0.72, 0.28, 1) forwards;
   pointer-events: none;
   will-change: transform, opacity;
+  filter: drop-shadow(0 2px 3px rgba(90, 8, 28, 0.38));
 }
 
 @keyframes wish-rise {

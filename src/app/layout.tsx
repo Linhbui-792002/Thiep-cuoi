@@ -1,5 +1,8 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Allura, Charm, Playfair_Display, Cormorant_Garamond, Be_Vietnam_Pro } from "next/font/google";
+import { getCachedSiteConfig } from "@/lib/data";
+import { DEFAULT_THEME } from "@/lib/theme";
+import { coupleTitle, getSiteUrl, invitationDescription } from "@/lib/seo";
 import "./globals.css";
 
 const allura = Allura({
@@ -38,10 +41,41 @@ const beVietnam = Be_Vietnam_Pro({
   display: "swap",
 });
 
-export const metadata: Metadata = {
-  title: "Thiệp Cưới",
-  description: "Thiệp cưới điện tử",
+export const viewport: Viewport = {
+  themeColor: DEFAULT_THEME.primary,
 };
+
+export async function generateMetadata(): Promise<Metadata> {
+  const config = await getCachedSiteConfig();
+  const names = coupleTitle(config);
+  const description = invitationDescription(config);
+  const site = getSiteUrl();
+
+  return {
+    metadataBase: new URL(site),
+    title: {
+      default: `${names} | Thiệp cưới`,
+      template: `%s | ${names}`,
+    },
+    description,
+    applicationName: "Thiệp cưới",
+    authors: [{ name: names }],
+    openGraph: {
+      type: "website",
+      locale: "vi_VN",
+      url: "/",
+      siteName: names,
+      title: `${names} | Thiệp cưới`,
+      description,
+    },
+    twitter: {
+      card: "summary_large_image",
+      title: `${names} | Thiệp cưới`,
+      description,
+    },
+    alternates: { canonical: "/" },
+  };
+}
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
   return (

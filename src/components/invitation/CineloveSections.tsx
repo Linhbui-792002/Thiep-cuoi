@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import Image from "next/image";
 import { SiteConfig, ContentSection, PageSectionData } from "@/types";
 import { getFieldValue } from "@/lib/sections";
@@ -86,6 +86,41 @@ function useInView() {
   return { ref, on };
 }
 
+function CoupleNames({ bride, groom }: { bride: string; groom: string }) {
+  const boxRef = useRef<HTMLHeadingElement>(null);
+  const probeRef = useRef<HTMLSpanElement>(null);
+  const [stacked, setStacked] = useState(false);
+
+  useLayoutEffect(() => {
+    const box = boxRef.current;
+    const probe = probeRef.current;
+    if (!box || !probe) return;
+
+    const check = () => {
+      setStacked(probe.scrollWidth > box.clientWidth + 1);
+    };
+
+    check();
+    const ro = new ResizeObserver(check);
+    ro.observe(box);
+    return () => ro.disconnect();
+  }, [bride, groom]);
+
+  return (
+    <h1
+      ref={boxRef}
+      className={`hero-couple-names font-name text-olive ${stacked ? "is-stacked" : ""}`}
+    >
+      <span ref={probeRef} className="hero-couple-probe" aria-hidden>
+        {bride} & {groom}
+      </span>
+      <span className="hero-couple-name">{bride}</span>
+      <span className="hero-couple-and">&</span>
+      <span className="hero-couple-name">{groom}</span>
+    </h1>
+  );
+}
+
 /* ─────────────── HERO ─────────────── */
 export function HeroSection({ config, sections, pageSections, introPhase = "done" }: Props) {
   const leftImg = getImageAt(sections, "hero", 0);
@@ -157,11 +192,7 @@ export function HeroSection({ config, sections, pageSections, introPhase = "done
       </div>
 
       <div className="mt-8 text-center">
-        <h1 className="font-name text-[38px] font-normal leading-none text-olive">
-          {config.brideName}
-          <span className="mx-1.5 font-name font-normal">&</span>
-          {config.groomName}
-        </h1>
+        <CoupleNames bride={config.brideName} groom={config.groomName} />
         <p className="mt-3 font-serif text-sm tracking-[0.2em] text-gray-600">{dateDots}</p>
       </div>
     </section>
