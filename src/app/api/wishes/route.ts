@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { connectDB } from "@/lib/mongodb";
+import { revalidateInvitation } from "@/lib/revalidate";
 import Wish from "@/models/Wish";
 
 export async function GET() {
@@ -32,6 +33,7 @@ export async function POST(request: NextRequest) {
 
     await connectDB();
     const wish = await Wish.create({ name, message });
+    revalidateInvitation();
     return NextResponse.json(wish, { status: 201 });
   } catch (error) {
     console.error("POST wish error:", error);

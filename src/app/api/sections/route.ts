@@ -8,6 +8,7 @@ import {
   getDefaultContent,
 } from "@/lib/sections";
 import type { PageSectionData } from "@/types";
+import { revalidateInvitation } from "@/lib/revalidate";
 
 function mapContent(raw: unknown): Record<string, string> {
   if (!raw) return {};
@@ -102,6 +103,7 @@ export async function PUT(request: NextRequest) {
     });
 
     const sections = await buildPageSections();
+    revalidateInvitation();
     return NextResponse.json(sections.find((s) => s.key === key));
   } catch (error) {
     console.error("PUT sections error:", error);

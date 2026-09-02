@@ -16,6 +16,7 @@ function normalizeEvents(events: unknown): Event[] {
       title: event.title ?? fallback.title,
       time: event.time ?? fallback.time,
       date: event.date ?? fallback.date,
+      lunarDate: event.lunarDate ?? fallback.lunarDate ?? "",
       location: event.location ?? fallback.location,
       address: event.address ?? fallback.address,
       mapUrl: event.mapUrl ?? fallback.mapUrl,

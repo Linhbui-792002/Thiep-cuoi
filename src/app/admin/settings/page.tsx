@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { AdminShell } from "@/components/admin/AdminShell";
+import { AdminToast } from "@/components/admin/AdminToast";
 import { ThemeEditor } from "@/components/admin/ThemeEditor";
 import { SiteConfig, ThemeConfig, GiftConfig } from "@/types";
 import { DEFAULT_SITE_CONFIG } from "@/lib/constants";
@@ -12,7 +13,14 @@ export default function AdminSettingsPage() {
   const [config, setConfig] = useState<SiteConfig | null>(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
-  const [message, setMessage] = useState("");
+  const [toast, setToast] = useState("");
+  const [toastError, setToastError] = useState(false);
+
+  function showToast(text: string, error = false) {
+    setToastError(error);
+    setToast("");
+    window.setTimeout(() => setToast(text), 0);
+  }
 
   useEffect(() => {
     fetch("/api/site-config")
@@ -30,7 +38,7 @@ export default function AdminSettingsPage() {
         });
       })
       .catch((err) => {
-        setMessage(err instanceof Error ? err.message : "Không thể tải cấu hình");
+        showToast(err instanceof Error ? err.message : "Không thể tải cấu hình", true);
       })
       .finally(() => setLoading(false));
   }, []);
@@ -40,7 +48,6 @@ export default function AdminSettingsPage() {
     if (!config) return;
 
     setSaving(true);
-    setMessage("");
 
     try {
       const res = await fetch("/api/site-config", {
@@ -53,9 +60,9 @@ export default function AdminSettingsPage() {
       if (!res.ok) throw new Error(data.error || "Lưu thất bại");
 
       setConfig(data);
-      setMessage("Đã lưu thành công!");
+      showToast("Đã lưu thành công!");
     } catch (err) {
-      setMessage(err instanceof Error ? err.message : "Lưu thất bại");
+      showToast(err instanceof Error ? err.message : "Lưu thất bại", true);
     } finally {
       setSaving(false);
     }
@@ -82,7 +89,6 @@ export default function AdminSettingsPage() {
   async function uploadQr(files: FileList | null) {
     if (!files?.[0] || !config) return;
     setSaving(true);
-    setMessage("");
     try {
       const formData = new FormData();
       formData.append("file", files[0]);
@@ -93,9 +99,9 @@ export default function AdminSettingsPage() {
         ...config,
         gift: { ...DEFAULT_SITE_CONFIG.gift, ...config.gift, qrImageUrl: uploadData.url },
       });
-      setMessage("Đã thêm ảnh QR. Nhớ bấm Lưu thay đổi.");
+      showToast("Đã thêm ảnh QR. Nhớ bấm Lưu thay đổi.");
     } catch (err) {
-      setMessage(err instanceof Error ? err.message : "Upload QR thất bại");
+      showToast(err instanceof Error ? err.message : "Upload QR thất bại", true);
     } finally {
       setSaving(false);
     }
@@ -131,6 +137,7 @@ export default function AdminSettingsPage() {
           title: side === "bride" ? "Tham dự lễ vu quy" : "Tham dự lễ thành hôn",
           time: "",
           date: "",
+          lunarDate: "",
           location: "",
           address: "",
           mapUrl: "",
@@ -159,11 +166,7 @@ export default function AdminSettingsPage() {
       title="Thông tin thiệp"
       description="Tên, ngày cưới, và sự kiện nhà trai / nhà gái"
     >
-        {message && (
-          <div className="mb-5 rounded-xl bg-green-50 px-4 py-3 text-sm text-green-700">
-            {message}
-          </div>
-        )}
+        <AdminToast message={toast} error={toastError} />
 
         <form onSubmit={handleSave} className="space-y-6">
           <ThemeEditor theme={config.theme} onChange={updateTheme} />
@@ -209,11 +212,14 @@ export default function AdminSettingsPage() {
               </div>
             </div>
             <div>
-              <label className="mb-1 block text-xs text-gray-500">Ngày âm lịch</label>
+              <label className="mb-1 block text-xs text-gray-500">
+                Ngày âm lịch mặc định
+              </label>
               <input
                 className="admin-input"
                 value={config.lunarDate}
                 onChange={(e) => updateField("lunarDate", e.target.value)}
+                placeholder="Dùng khi sự kiện chưa nhập ngày âm riêng"
               />
             </div>
             <div>
@@ -412,11 +418,17 @@ export default function AdminSettingsPage() {
                 />
                 <input
                   className="admin-input"
-                  placeholder="Ngày hiển thị"
+                  placeholder="Ngày dương"
                   value={event.date}
                   onChange={(e) => updateEvent(i, "date", e.target.value)}
                 />
               </div>
+              <input
+                className="admin-input"
+                placeholder="Ngày âm (riêng sự kiện này)"
+                value={event.lunarDate ?? ""}
+                onChange={(e) => updateEvent(i, "lunarDate", e.target.value)}
+              />
               <input
                 className="admin-input"
                 placeholder="Địa điểm"

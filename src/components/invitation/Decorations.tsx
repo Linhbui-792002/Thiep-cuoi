@@ -66,17 +66,6 @@ function linenPattern(id: string) {
   );
 }
 
-function scallopedPath(cx: number, cy: number, r: number, lobes: number, amp: number) {
-  const steps = lobes * 14;
-  const pts: string[] = [];
-  for (let i = 0; i <= steps; i++) {
-    const a = (i / steps) * Math.PI * 2 - Math.PI / 2;
-    const rr = r + amp * Math.cos(lobes * a);
-    pts.push(`${(cx + rr * Math.cos(a)).toFixed(2)},${(cy + rr * Math.sin(a)).toFixed(2)}`);
-  }
-  return `M ${pts.join(" L ")} Z`;
-}
-
 /** Diamond 4-flap silhouette that sits behind the photos. */
 export function EnvelopeBack({ className = "", uid = "back" }: { className?: string; uid?: string }) {
   const fill = `url(#linen-${uid})`;
@@ -113,13 +102,13 @@ export function EnvelopeBack({ className = "", uid = "back" }: { className?: str
   );
 }
 
-/** Front flaps with a V opening so photos/ticket sit inside the pocket. */
+/** Front of the same envelope: V opening so photos/ticket sit in the pocket. */
 export function EnvelopeFront({ className = "", uid = "front" }: { className?: string; uid?: string }) {
   const fill = `url(#linen-${uid})`;
   return (
     <svg
       className={className}
-      viewBox="0 0 320 220"
+      viewBox="0 0 300 200"
       fill="none"
       xmlns="http://www.w3.org/2000/svg"
       aria-hidden
@@ -128,31 +117,15 @@ export function EnvelopeFront({ className = "", uid = "front" }: { className?: s
       <path
         fill={fill}
         fillRule="evenodd"
-        d="M4 14 H316 V198 Q160 224 4 198 Z
-           M4 14 L160 128 L316 14 Z"
+        d="M2 8 H298 V184 Q150 198 2 184 Z
+           M2 8 L150 116 L298 8 Z"
       />
-      <path d="M4 14 L160 128 L4 198 Z" fill="rgba(0,0,0,0.16)" />
-      <path d="M316 14 L160 128 L316 198 Z" fill="rgba(0,0,0,0.08)" />
+      <path d="M2 8 L150 116 L2 184 Z" fill="rgba(0,0,0,0.16)" />
+      <path d="M298 8 L150 116 L298 184 Z" fill="rgba(0,0,0,0.08)" />
       <path
-        d="M24 200 L148 132 Q160 118 172 132 L296 200 Q160 218 24 200 Z"
-        fill="rgba(255,255,255,0.1)"
-      />
-      <path
-        d="M4 14 L160 128 L316 14"
+        d="M2 8 L150 116 L298 8"
         stroke="rgba(255,255,255,0.16)"
         strokeWidth="1.2"
-        fill="none"
-      />
-      <path
-        d="M160 124 L18 196"
-        stroke="rgba(255,255,255,0.1)"
-        strokeWidth="1"
-        fill="none"
-      />
-      <path
-        d="M160 124 L302 196"
-        stroke="rgba(255,255,255,0.1)"
-        strokeWidth="1"
         fill="none"
       />
     </svg>
@@ -163,44 +136,108 @@ export function EnvelopeGraphic({ className = "", uid = "env" }: { className?: s
   return <EnvelopeFront className={className} uid={uid} />;
 }
 
-export function SealBadge({
-  monogram,
-  ringText,
-  className = "",
-  uid = "seal",
-}: {
-  monogram: string;
-  ringText: string;
-  className?: string;
-  uid?: string;
-}) {
-  const pathId = `seal-circle-${uid}`;
-  const loop = `${ringText}  •  ${ringText}  •  `;
+/** Rectangular body of a closed envelope. */
+export function EnvelopeBody({ className = "", uid = "body" }: { className?: string; uid?: string }) {
+  const fill = `url(#linen-${uid})`;
   return (
-    <div className={`seal-badge ${className}`}>
-      <div className="seal-badge-inner">
-        <svg className="seal-ring" viewBox="0 0 100 100" width="108" height="108" aria-hidden>
-          <defs>
-            <path
-              id={pathId}
-              d="M 50,50 m -41,0 a 41,41 0 1,1 82,0 a 41,41 0 1,1 -82,0"
-            />
-          </defs>
-          <text>
-            <textPath href={`#${pathId}`} startOffset="0%" textLength="258" lengthAdjust="spacing">
-              {loop}
-            </textPath>
-          </text>
-        </svg>
-        <svg className="seal-wax" viewBox="0 0 100 100" width="67" height="67" aria-hidden>
-          <path d={scallopedPath(50, 50, 34, 9, 4.6)} fill="var(--primary-dark)" />
-          <path d={scallopedPath(50, 50, 32, 9, 4.2)} fill="var(--primary)" />
-          <circle cx="50" cy="50" r="22" fill="var(--primary-dark)" />
-          <circle cx="50" cy="50" r="20.5" fill="var(--primary)" />
-          <circle cx="42" cy="40" r="10" fill="rgba(255,255,255,0.12)" />
-        </svg>
-        <span className="seal-mono font-script">{monogram}</span>
-      </div>
+    <svg
+      className={className}
+      viewBox="0 0 300 200"
+      fill="none"
+      xmlns="http://www.w3.org/2000/svg"
+      aria-hidden
+    >
+      <defs>{linenPattern(`linen-${uid}`)}</defs>
+      <rect x="2" y="8" width="296" height="176" rx="4" fill={fill} />
+      <rect
+        x="2"
+        y="8"
+        width="296"
+        height="176"
+        rx="4"
+        stroke="rgba(255,255,255,0.14)"
+        strokeWidth="1"
+        fill="none"
+      />
+    </svg>
+  );
+}
+
+/** Downward triangular flap that covers the body when the envelope is shut. */
+export function EnvelopeFlap({ className = "", uid = "flap" }: { className?: string; uid?: string }) {
+  const fill = `url(#linen-${uid})`;
+  return (
+    <svg
+      className={className}
+      viewBox="0 0 300 124"
+      fill="none"
+      xmlns="http://www.w3.org/2000/svg"
+      aria-hidden
+    >
+      <defs>{linenPattern(`linen-${uid}`)}</defs>
+      <path d="M2 2 H298 L150 116 Z" fill={fill} />
+      <path d="M2 2 L150 116 L150 2 Z" fill="rgba(0,0,0,0.1)" />
+      <path d="M298 2 L150 116 L150 2 Z" fill="rgba(255,255,255,0.08)" />
+      <path
+        d="M2 2 H298 L150 116 Z"
+        stroke="rgba(255,255,255,0.16)"
+        strokeWidth="1.2"
+        fill="none"
+      />
+    </svg>
+  );
+}
+
+export function WaxSeal({ monogram, className = "" }: { monogram: string; className?: string }) {
+  return (
+    <div className={`wax-natural ${className}`} aria-hidden>
+      <svg className="wax-natural-svg" viewBox="0 0 90 108" fill="none">
+        <path
+          d="M24 86 C22 96 28 106 34 104 C36 98 34 90 32 86 Z"
+          fill="var(--primary-dark)"
+        />
+        <path
+          d="M48 88 C50 100 56 110 61 106 C62 98 56 90 52 86 Z"
+          fill="var(--primary)"
+        />
+        <path
+          d="M62 78 C66 90 72 96 76 92 C74 84 68 78 64 74 Z"
+          fill="var(--primary-dark)"
+          opacity="0.92"
+        />
+        <path
+          d="M40 6
+             C18 10 8 28 10 46
+             C7 58 14 70 22 76
+             C18 82 26 86 34 80
+             C40 86 54 84 58 76
+             C70 80 82 66 80 50
+             C84 32 72 12 54 8
+             C50 4 44 4 40 6 Z"
+          fill="var(--primary-dark)"
+        />
+        <path
+          d="M40 11
+             C22 15 14 30 16 46
+             C14 56 20 67 28 72
+             C26 76 32 78 38 74
+             C44 80 56 76 58 70
+             C68 74 76 62 74 48
+             C78 32 66 16 52 13
+             C48 10 44 10 40 11 Z"
+          fill="var(--primary)"
+        />
+        <path
+          d="M28 24 C22 28 24 38 32 36 C38 28 34 22 28 24 Z"
+          fill="rgba(255,255,255,0.22)"
+        />
+        <path
+          d="M36 38 C28 42 30 58 42 60 C54 58 56 42 46 38 C42 36 38 36 36 38 Z"
+          fill="var(--primary-dark)"
+          opacity="0.28"
+        />
+      </svg>
+      <span className="wax-imprint font-script">{monogram}</span>
     </div>
   );
 }

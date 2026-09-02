@@ -1,8 +1,8 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import Image from "next/image";
-import { SiteConfig, ContentSection, ImageItem, PageSectionData } from "@/types";
+import { SiteConfig, ContentSection, PageSectionData } from "@/types";
 import { getFieldValue } from "@/lib/sections";
 import {
   getImageAt,
@@ -10,18 +10,20 @@ import {
   parseISODate,
   formatDateSlash,
   buildMonthGrid,
-  buildAlbumRows,
 } from "@/lib/images";
-import { Heart } from "lucide-react";
+import { ChevronLeft, ChevronRight, Heart, Maximize2 } from "lucide-react";
 import { SectionImage, PlaceholderImage } from "./SectionImage";
-import { DaisyBouquet, TulipBouquet, HeartBouquet, EnvelopeBack, EnvelopeFront, SealBadge } from "./Decorations";
+import { DaisyBouquet, TulipBouquet, HeartBouquet, EnvelopeBody, EnvelopeFront, EnvelopeFlap, WaxSeal } from "./Decorations";
 import type { InvitationSide } from "@/types";
+
+export type IntroPhase = "mist" | "open" | "envelope" | "done";
 
 interface Props {
   config: SiteConfig;
   sections: ContentSection[];
   pageSections: PageSectionData[];
   side?: InvitationSide;
+  introPhase?: IntroPhase;
 }
 
 type TextProps = { pageSections: PageSectionData[] };
@@ -31,8 +33,61 @@ function ticketStub(groomName: string, brideName: string) {
   return `${last(groomName)} & ${last(brideName)}`.toUpperCase();
 }
 
+function useInView() {
+  const ref = useRef<HTMLElement | null>(null);
+  const [on, setOn] = useState(false);
+
+  useEffect(() => {
+    const el = ref.current;
+    if (!el) return;
+    const root = el.closest(".cinelove-scroll");
+
+    const visible = () => {
+      const box = el.getBoundingClientRect();
+      const frame =
+        root instanceof Element
+          ? root.getBoundingClientRect()
+          : { top: 0, bottom: window.innerHeight };
+      return box.bottom > frame.top + 24 && box.top < frame.bottom - 24;
+    };
+
+    if (visible()) {
+      setOn(true);
+      return;
+    }
+
+    const onScroll = () => {
+      if (visible()) {
+        setOn(true);
+        cleanup();
+      }
+    };
+
+    const io = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting) {
+          setOn(true);
+          cleanup();
+        }
+      },
+      { root: root instanceof Element ? root : null, threshold: 0.08 },
+    );
+    io.observe(el);
+    root?.addEventListener("scroll", onScroll, { passive: true });
+
+    function cleanup() {
+      io.disconnect();
+      root?.removeEventListener("scroll", onScroll);
+    }
+
+    return cleanup;
+  }, []);
+
+  return { ref, on };
+}
+
 /* ─────────────── HERO ─────────────── */
-export function HeroSection({ config, sections, pageSections }: Props) {
+export function HeroSection({ config, sections, pageSections, introPhase = "done" }: Props) {
   const leftImg = getImageAt(sections, "hero", 0);
   const rightImg = getImageAt(sections, "hero", 1);
   const dateDots = formatDateSlash(config.weddingDate);
@@ -41,72 +96,67 @@ export function HeroSection({ config, sections, pageSections }: Props) {
   const cardTitle = getFieldValue(pageSections, "hero", "cardTitle");
   const cardSubtitle = getFieldValue(pageSections, "hero", "cardSubtitle");
 
-  const ringText = `${scriptTitle}  •  ${config.brideName} & ${config.groomName}`;
+  const opened = introPhase === "envelope" || introPhase === "done";
 
   return (
-    <section className="relative px-4 pb-6 pt-10">
-      <p className="anim-fade-up relative z-10 text-center font-script text-[21px] font-medium leading-none text-olive">
+    <section className={`hero-stage relative px-4 pb-6 pt-10 ${opened ? "is-open" : "is-closed"}`}>
+      <p className="relative z-10 text-center font-script text-[21px] font-medium leading-none text-olive">
         {scriptTitle}
       </p>
 
-      <div className="relative mx-auto mt-1 h-[400px] w-full max-w-[360px]">
-        <DaisyBouquet className="anim-sway absolute left-1 top-[68px] z-[8] h-[170px] w-[110px] opacity-95" />
+      <div className="hero-3d relative mx-auto mt-1 h-[400px] w-full max-w-[360px]">
+        <div className="hero-envelope">
+          <DaisyBouquet className="anim-sway env-daisy" />
 
-        <div className="absolute left-1/2 top-[62px] z-0 h-[250px] w-[270px] -translate-x-1/2">
-          <EnvelopeBack className="envelope-svg envelope-back-svg h-full w-full" uid="hero-back" />
-        </div>
-
-        <div className="absolute bottom-[36px] left-1/2 z-[1] h-[188px] w-[300px] -translate-x-1/2">
-          <svg viewBox="0 0 320 220" className="h-full w-full" aria-hidden>
-            <polygon points="4,14 160,128 316,14" fill="var(--background)" />
-          </svg>
-        </div>
-
-        <div className="polaroid polaroid-in-left absolute left-[22px] top-[70px] z-10 w-[118px]">
-          {leftImg ? (
-            <SectionImage images={[leftImg]} className="h-[168px] w-full" priority />
-          ) : (
-            <PlaceholderImage className="h-[168px] w-full" />
-          )}
-        </div>
-
-        <div className="polaroid polaroid-in-right absolute right-[12px] top-[58px] z-[3] w-[132px]">
-          {rightImg ? (
-            <SectionImage images={[rightImg]} className="h-[186px] w-full" priority />
-          ) : (
-            <PlaceholderImage className="h-[186px] w-full" />
-          )}
-        </div>
-
-        <div className="invitation-card absolute left-1/2 top-[188px] z-[11] w-[168px] -translate-x-1/2">
-          <div className="ticket-stub">
-            <span>{ticketStub(config.groomName, config.brideName)}</span>
+          <div className="env-body">
+            <EnvelopeBody className="h-full w-full" uid="hero-body" />
           </div>
-          <div className="ticket-body">
-            <p className="font-script text-[15px] leading-none text-olive">{cardTitle}</p>
-            <p className="mt-1.5 font-serif text-[15px] font-semibold tracking-wide text-olive">
-              {dateDots.replaceAll("/", " . ")}
-            </p>
-            <p className="mt-1 font-script text-[13px] leading-none text-olive/80">
-              {cardSubtitle}
-            </p>
+
+          <div className="env-contents">
+            <div className="polaroid polaroid-in-left">
+              {leftImg ? (
+                <SectionImage images={[leftImg]} className="h-[168px] w-full" priority />
+              ) : (
+                <PlaceholderImage className="h-[168px] w-full" />
+              )}
+            </div>
+            <div className="polaroid polaroid-in-right">
+              {rightImg ? (
+                <SectionImage images={[rightImg]} className="h-[186px] w-full" priority />
+              ) : (
+                <PlaceholderImage className="h-[186px] w-full" />
+              )}
+            </div>
+            <div className="invitation-card">
+              <div className="ticket-stub">
+                <span>{ticketStub(config.groomName, config.brideName)}</span>
+              </div>
+              <div className="ticket-body">
+                <p className="font-script text-[14px] leading-none text-olive">{cardTitle}</p>
+                <p className="mt-1 font-serif text-[14px] font-semibold tracking-wide text-olive">
+                  {dateDots.replaceAll("/", " . ")}
+                </p>
+                <p className="mt-0.5 font-script text-[12px] leading-none text-olive/80">
+                  {cardSubtitle}
+                </p>
+              </div>
+            </div>
           </div>
-        </div>
 
-        <div className="absolute bottom-[36px] left-1/2 z-[12] h-[188px] w-[300px] -translate-x-1/2">
-          <EnvelopeFront className="envelope-svg h-full w-full" uid="hero-front" />
-          <SealBadge
-            className="seal-on-envelope"
-            monogram={config.monogram}
-            ringText={ringText}
-            uid="hero"
-          />
-        </div>
+          <div className="env-front">
+            <EnvelopeFront className="h-full w-full" uid="hero-front" />
+          </div>
 
-        <TulipBouquet className="anim-sway absolute bottom-2 right-[-2px] z-[20] h-16 w-14" />
+          <div className="env-flap">
+            <EnvelopeFlap className="h-full w-full" uid="hero-flap" />
+          </div>
+
+          <WaxSeal className="wax-on-flap" monogram={config.monogram || "TL"} />
+          <TulipBouquet className="anim-sway env-tulip" />
+        </div>
       </div>
 
-      <div className="anim-fade-up anim-delay-4 mt-8 text-center">
+      <div className="mt-8 text-center">
         <h1 className="font-name text-[38px] font-normal leading-none text-olive">
           {config.brideName}
           <span className="mx-1.5 font-name font-normal">&</span>
@@ -189,7 +239,7 @@ export function CalendarSection({ config, sections, pageSections }: Props) {
 export function InviteSection({ config, sections, pageSections, side = "bride" }: Props) {
   const brideImg = getImageAt(sections, "bride", 0);
   const groomImg = getImageAt(sections, "groom", 0);
-  const coupleImages = getSectionImages(sections, "couple");
+  const { ref, on } = useInView();
 
   const greeting = getFieldValue(pageSections, "invite", "greeting");
   const guestTitle = getFieldValue(pageSections, "invite", "guestTitle");
@@ -199,85 +249,49 @@ export function InviteSection({ config, sections, pageSections, side = "bride" }
       : getFieldValue(pageSections, "invite", "eventLabel");
   const quoteOverride = getFieldValue(pageSections, "invite", "quote");
   const quoteText = quoteOverride.trim() || config.quote;
-  const quoteLines = quoteText.split("\n");
-  const monoLeft = getFieldValue(pageSections, "invite", "monogramLeft");
-  const monoRight = getFieldValue(pageSections, "invite", "monogramRight");
+  const quoteLines = quoteText.split("\n").filter(Boolean);
 
   return (
-    <section className="anim-fade-up relative px-4 py-10">
-      <div className="text-center">
-        <p className="text-caps text-olive">{greeting}</p>
-        <p className="mt-3 font-serif text-[33px] font-medium leading-none text-olive">
-          {guestTitle}
-        </p>
-        <p className="mt-4 text-caps text-gray-500">{eventLabel}</p>
+    <section ref={ref} className={`invite-section ${on ? "is-in" : ""}`}>
+      <p className="invite-greeting text-caps text-olive">{greeting}</p>
+      <p className="invite-guest font-serif text-olive">{guestTitle}</p>
+      <p className="invite-event text-caps text-gray-500">{eventLabel}</p>
+
+      <div className="invite-names">
+        <p className="invite-name invite-name-bride font-hand text-olive">{config.brideName}</p>
+        <HeartBouquet className="invite-name-heart" />
+        <p className="invite-name invite-name-groom font-hand text-olive">{config.groomName}</p>
       </div>
 
-      <div className="relative mx-auto mt-8 max-w-[340px]">
-        <div className="text-center">
-          <p className="font-name text-[30px] font-medium leading-[40px] text-olive">
-            {config.brideName}
-          </p>
-          <div className="my-1 flex items-center justify-center gap-2">
-            <HeartBouquet className="h-10 w-8" />
-            <span className="font-name text-[28px] font-medium text-olive">&</span>
-            <HeartBouquet className="h-10 w-8 scale-x-[-1]" />
+      <div className="invite-photos">
+        <div className="invite-quote-bar">
+          {quoteLines[0] ? (
+            <p className="invite-quote-line font-serif">{quoteLines[0]}</p>
+          ) : null}
+          <div className="invite-quote-hearts" aria-hidden>
+            <Heart size={12} className="fill-[#e8a0ae] text-[#e8a0ae]" strokeWidth={0} />
+            <Heart size={11} className="fill-[#f0c4cc] text-[#f0c4cc]" strokeWidth={0} />
+            <Heart size={12} className="fill-[#e8a0ae] text-[#e8a0ae]" strokeWidth={0} />
           </div>
-          <p className="font-name text-[30px] font-medium leading-[40px] text-olive">
-            {config.groomName}
-          </p>
+          {quoteLines[1] ? (
+            <p className="invite-quote-line font-serif">{quoteLines[1]}</p>
+          ) : null}
         </div>
 
-        <div className="relative mt-8 flex items-center justify-center gap-0">
-          <div className="relative z-10 -mr-4 mt-8 w-[110px] shrink-0">
-            <SectionImage
-              images={brideImg ? [brideImg] : []}
-              className="aspect-[3/4] w-full shadow-lg"
-              fallback={<PlaceholderImage className="aspect-[3/4] w-full" label="Cô dâu" />}
-            />
-          </div>
-
-          <div className="relative z-20 flex w-[80px] shrink-0 flex-col items-center bg-olive py-6 text-white">
-            <span className="font-script text-4xl opacity-80">{monoLeft}</span>
-            <div className="my-3 space-y-1 text-center">
-              {quoteLines.map((line, i) => (
-                <p
-                  key={i}
-                  className="text-vertical font-serif text-[11px] leading-relaxed opacity-90"
-                  style={{ maxHeight: "120px" }}
-                >
-                  {line}
-                </p>
-              ))}
-            </div>
-            <span className="font-script text-4xl opacity-80">{monoRight}</span>
-          </div>
-
-          <div className="relative z-10 -ml-4 -mt-6 w-[110px] shrink-0">
-            <SectionImage
-              images={groomImg ? [groomImg] : []}
-              className="aspect-[3/4] w-full shadow-lg"
-              fallback={<PlaceholderImage className="aspect-[3/4] w-full" label="Chú rể" />}
-            />
-          </div>
+        <div className="invite-photo invite-photo-left">
+          <SectionImage
+            images={brideImg ? [brideImg] : []}
+            className="h-full w-full"
+            fallback={<PlaceholderImage className="h-full w-full" label="Cô dâu" />}
+          />
         </div>
-
-        {coupleImages.length > 0 && (
-          <div className="mt-6 flex justify-center gap-2 overflow-x-auto">
-            {coupleImages.map((img, i) => (
-              <div key={img.url} className="relative h-28 w-20 shrink-0 overflow-hidden rounded-sm">
-                <Image
-                  src={img.url}
-                  alt={img.alt || `Couple ${i + 1}`}
-                  fill
-                  className="object-cover"
-                  sizes="80px"
-                  unoptimized={img.url.startsWith("/api/")}
-                />
-              </div>
-            ))}
-          </div>
-        )}
+        <div className="invite-photo invite-photo-right">
+          <SectionImage
+            images={groomImg ? [groomImg] : []}
+            className="h-full w-full"
+            fallback={<PlaceholderImage className="h-full w-full" label="Chú rể" />}
+          />
+        </div>
       </div>
     </section>
   );
@@ -331,7 +345,11 @@ export function EventSection({
           <p className="mt-5 font-serif text-sm text-white/80">{timeLabel}</p>
           <p className="mt-1 font-serif text-lg tracking-wide">{event.time}</p>
           <p className="mt-3 font-serif text-2xl font-semibold tracking-wider">{event.date}</p>
-          <p className="mt-2 font-serif text-xs text-white/70">{config.lunarDate}</p>
+          {(event.lunarDate || config.lunarDate) && (
+            <p className="mt-2 font-serif text-xs text-white/70">
+              {event.lunarDate || config.lunarDate}
+            </p>
+          )}
           <p className="mt-8 font-script text-[42px] leading-none text-white">{event.location}</p>
 
           {event.address.includes("\n") ? (
@@ -396,78 +414,119 @@ export function GallerySection({
   pageSections: PageSectionData[];
 }) {
   const images = getSectionImages(sections, "gallery");
-  const [active, setActive] = useState<ImageItem | null>(null);
+  const [index, setIndex] = useState(0);
+  const [open, setOpen] = useState(false);
+  const startX = useRef<number | null>(null);
+
   if (images.length === 0) return null;
 
+  const current = images[Math.min(index, images.length - 1)];
   const linkText = getFieldValue(pageSections, "gallery", "linkText");
-  const rows = buildAlbumRows(images);
+
+  function go(dir: number) {
+    setIndex((i) => (i + dir + images.length) % images.length);
+  }
+
+  function onTouchStart(e: React.TouchEvent) {
+    startX.current = e.touches[0].clientX;
+  }
+
+  function onTouchEnd(e: React.TouchEvent) {
+    if (startX.current == null) return;
+    const dx = e.changedTouches[0].clientX - startX.current;
+    startX.current = null;
+    if (dx > 40) go(-1);
+    if (dx < -40) go(1);
+  }
 
   return (
-    <section className="pb-4 pt-6">
-      <div className="album">
-        {rows.map((row, ri) =>
-          row.type === "wide" ? (
+    <section className="album-slider">
+      {linkText ? (
+        <p className="mb-3 text-center font-script text-[22px] text-olive">{linkText}</p>
+      ) : null}
+
+      <div
+        className="album-stage"
+        onTouchStart={onTouchStart}
+        onTouchEnd={onTouchEnd}
+      >
+        <Image
+          src={current.url}
+          alt={current.alt || `Photo ${index + 1}`}
+          fill
+          className="object-contain"
+          sizes="430px"
+          unoptimized={current.url.startsWith("/api/")}
+          priority={index === 0}
+        />
+
+        {images.length > 1 ? (
+          <>
             <button
-              key={`${row.image.url}-${ri}`}
               type="button"
-              className="album-cell album-wide"
-              onClick={() => setActive(row.image)}
+              className="album-nav album-nav-prev"
+              onClick={() => go(-1)}
+              aria-label="Ảnh trước"
             >
-              <Image
-                src={row.image.url}
-                alt={row.image.alt || "Gallery"}
-                fill
-                className="object-cover"
-                sizes="430px"
-                unoptimized={row.image.url.startsWith("/api/")}
-              />
+              <ChevronLeft size={18} />
             </button>
-          ) : (
-            <div
-              key={ri}
-              className={`album-row ${row.images.length === 2 ? "album-row-2" : "album-row-3"}`}
+            <button
+              type="button"
+              className="album-nav album-nav-next"
+              onClick={() => go(1)}
+              aria-label="Ảnh sau"
             >
-              {row.images.map((img) => (
-                <button
-                  key={img.url}
-                  type="button"
-                  className="album-cell album-portrait"
-                  onClick={() => setActive(img)}
-                >
-                  <Image
-                    src={img.url}
-                    alt={img.alt || "Gallery"}
-                    fill
-                    className="object-cover"
-                    sizes="150px"
-                    unoptimized={img.url.startsWith("/api/")}
-                  />
-                </button>
-              ))}
-            </div>
-          ),
-        )}
+              <ChevronRight size={18} />
+            </button>
+          </>
+        ) : null}
+
+        <button
+          type="button"
+          className="album-expand"
+          onClick={() => setOpen(true)}
+          aria-label="Xem lớn"
+        >
+          <Maximize2 size={14} />
+        </button>
       </div>
 
-      {linkText && (
-        <div className="mt-4 text-center">
-          <span className="font-script text-[22px] text-olive">{linkText}</span>
+      {images.length > 1 ? (
+        <div className="album-thumbs">
+          {images.map((img, i) => (
+            <button
+              key={img.url}
+              type="button"
+              className={`album-thumb ${i === index ? "is-on" : ""}`}
+              onClick={() => setIndex(i)}
+              aria-label={`Ảnh ${i + 1}`}
+            >
+              <Image
+                src={img.url}
+                alt=""
+                fill
+                className="object-cover"
+                sizes="62px"
+                unoptimized={img.url.startsWith("/api/")}
+              />
+            </button>
+          ))}
         </div>
-      )}
+      ) : null}
 
-      {active && (
+      {open ? (
         <div
-          className="fixed inset-0 z-[160] flex items-center justify-center bg-black/80 p-4"
-          onClick={() => setActive(null)}
+          className="fixed inset-0 z-[160] flex items-center justify-center bg-black/85 p-4"
+          onClick={() => setOpen(false)}
         >
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
-            src={active.url}
-            alt={active.alt || "Album"}
+            src={current.url}
+            alt={current.alt || "Album"}
             className="max-h-[88dvh] max-w-full object-contain"
           />
         </div>
-      )}
+      ) : null}
     </section>
   );
 }

@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getSession } from "@/lib/session";
 import { loadSiteConfig, saveSiteConfig } from "@/lib/site-config-store";
+import { revalidateInvitation } from "@/lib/revalidate";
 
 export async function GET() {
   try {
@@ -24,6 +25,7 @@ export async function PUT(request: NextRequest) {
   try {
     const body = await request.json();
     const config = await saveSiteConfig(body);
+    revalidateInvitation();
     return NextResponse.json(config);
   } catch (error) {
     console.error("PUT site-config error:", error);

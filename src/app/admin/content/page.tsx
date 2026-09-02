@@ -3,6 +3,7 @@
 import { useEffect, useState, useRef } from "react";
 import Image from "next/image";
 import { AdminShell } from "@/components/admin/AdminShell";
+import { AdminToast } from "@/components/admin/AdminToast";
 import { PageSectionData } from "@/types";
 import { IMAGE_SECTION_LABELS } from "@/lib/sections";
 import { ChevronDown, ChevronUp, Eye, EyeOff, Save } from "lucide-react";
@@ -19,9 +20,16 @@ export default function AdminContentPage() {
   const [loading, setLoading] = useState(true);
   const [uploading, setUploading] = useState<string | null>(null);
   const [saving, setSaving] = useState<string | null>(null);
-  const [message, setMessage] = useState("");
+  const [toast, setToast] = useState("");
+  const [toastError, setToastError] = useState(false);
   const [expanded, setExpanded] = useState<string | null>("hero");
   const fileRefs = useRef<Record<string, HTMLInputElement | null>>({});
+
+  function showToast(text: string, error = false) {
+    setToastError(error);
+    setToast("");
+    window.setTimeout(() => setToast(text), 0);
+  }
 
   useEffect(() => {
     fetchSections();
@@ -33,7 +41,7 @@ export default function AdminContentPage() {
       const data = await res.json();
       setSections(data);
     } catch {
-      setMessage("Không thể tải dữ liệu");
+      showToast("Không thể tải dữ liệu", true);
     } finally {
       setLoading(false);
     }
@@ -59,7 +67,6 @@ export default function AdminContentPage() {
 
   async function saveSection(section: PageSectionData) {
     setSaving(section.key);
-    setMessage("");
 
     try {
       const res = await fetch("/api/sections", {
@@ -76,9 +83,9 @@ export default function AdminContentPage() {
       if (!res.ok) throw new Error(data.error || "Lưu thất bại");
 
       setSections((prev) => prev.map((s) => (s.key === section.key ? { ...s, ...data } : s)));
-      setMessage(`Đã lưu section "${section.title}"`);
+      showToast(`Đã lưu "${section.title}"`);
     } catch (err) {
-      setMessage(err instanceof Error ? err.message : "Lưu thất bại");
+      showToast(err instanceof Error ? err.message : "Lưu thất bại", true);
     } finally {
       setSaving(null);
     }
@@ -88,7 +95,6 @@ export default function AdminContentPage() {
     if (!files || files.length === 0) return;
 
     setUploading(imageKey);
-    setMessage("");
 
     try {
       const section = sections.find((s) => s.key === sectionKey);
@@ -125,9 +131,9 @@ export default function AdminContentPage() {
       if (!res.ok) throw new Error(data.error || "Lưu thất bại");
 
       await fetchSections();
-      setMessage(`Đã thêm ảnh vào ${IMAGE_SECTION_LABELS[imageKey] || imageKey}`);
+      showToast(`Đã thêm ảnh vào ${IMAGE_SECTION_LABELS[imageKey] || imageKey}`);
     } catch (err) {
-      setMessage(err instanceof Error ? err.message : "Upload thất bại");
+      showToast(err instanceof Error ? err.message : "Upload thất bại", true);
     } finally {
       setUploading(null);
       const input = fileRefs.current[imageKey];
@@ -144,9 +150,9 @@ export default function AdminContentPage() {
       });
       if (!res.ok) throw new Error("Xóa thất bại");
       await fetchSections();
-      setMessage("Đã xóa ảnh");
+      showToast("Đã xóa ảnh");
     } catch (err) {
-      setMessage(err instanceof Error ? err.message : "Xóa thất bại");
+      showToast(err instanceof Error ? err.message : "Xóa thất bại", true);
     }
   }
 
@@ -163,11 +169,7 @@ export default function AdminContentPage() {
       title="Nội dung & ảnh"
       description="Chỉnh chữ và ảnh theo từng phần trên thiệp"
     >
-        {message && (
-          <div className="mb-5 rounded-xl bg-green-50 px-4 py-3 text-sm text-green-700">
-            {message}
-          </div>
-        )}
+        <AdminToast message={toast} error={toastError} />
 
         <div className="space-y-4">
           {sections.map((section) => {

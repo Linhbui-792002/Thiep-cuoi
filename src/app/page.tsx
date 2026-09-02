@@ -1,12 +1,12 @@
-import { getSiteConfig } from "@/lib/data";
+import { getCachedSiteConfig } from "@/lib/data";
 import { INVITATION_SIDES } from "@/lib/invitation-side";
 import { ThemeProvider } from "@/components/invitation/ThemeProvider";
 import Link from "next/link";
 
-export const dynamic = "force-dynamic";
+export const revalidate = 60;
 
 export default async function Home() {
-  const config = await getSiteConfig();
+  const config = await getCachedSiteConfig();
 
   return (
     <ThemeProvider theme={config.theme} className="cinelove-page">

@@ -42,6 +42,7 @@ export interface Event {
   title: string;
   time: string;
   date: string;
+  lunarDate: string;
   location: string;
   address: string;
   mapUrl: string;

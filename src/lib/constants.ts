@@ -40,6 +40,7 @@ export const DEFAULT_SITE_CONFIG = {
       title: "Tham dự lễ vu quy",
       time: "09 : 00 , chủ nhật",
       date: "26 . 04 . 2026",
+      lunarDate: "Tức Ngày 10 Tháng 03 Năm Bính Ngọ",
       location: "Tư gia nhà gái",
       address: "H1P1 Văn Miếu, Phường Trường Thi, Tỉnh Ninh Bình\n(Tỉnh Nam Định cũ)",
       mapUrl: "",
@@ -49,6 +50,7 @@ export const DEFAULT_SITE_CONFIG = {
       title: "Tham dự lễ thành hôn",
       time: "11 : 00 , chủ nhật",
       date: "26 . 04 . 2026",
+      lunarDate: "Tức Ngày 10 Tháng 03 Năm Bính Ngọ",
       location: "Golden Palace",
       address:
         "98 Đại Lộ Đông A, Lộc Vượng, Tỉnh Ninh Bình,\n(Thành Phố Nam Định cũ)",

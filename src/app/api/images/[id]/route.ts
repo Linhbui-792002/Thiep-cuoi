@@ -44,6 +44,7 @@ export async function GET(
       headers: {
         "Content-Type": (doc.mimeType as string) || "application/octet-stream",
         "Cache-Control": "public, max-age=31536000, immutable",
+        "CDN-Cache-Control": "public, max-age=31536000, immutable",
       },
     });
   } catch (error) {

@@ -199,7 +199,7 @@ export function FloatingUI({
         </button>
       )}
 
-      <p className="side-watermark text-vertical font-label">Made with Thiệp Cưới</p>
+      <p className="side-watermark text-vertical font-label">Gift by Linh Bún</p>
 
       <div className="fx-layer" aria-hidden>
         {flyingWishes.map((w) => (

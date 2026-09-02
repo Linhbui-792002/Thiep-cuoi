@@ -1,9 +1,9 @@
-import { loadInvitationData } from "@/lib/data";
+import { getCachedInvitationData } from "@/lib/data";
 import { InvitationPage } from "@/components/invitation/InvitationPage";
 
-export const dynamic = "force-dynamic";
+export const revalidate = 60;
 
 export default async function NhaGaiPage() {
-  const data = await loadInvitationData("bride");
+  const data = await getCachedInvitationData("bride");
   return <InvitationPage data={data} />;
 }

@@ -14,6 +14,7 @@ export interface IEvent {
   title: string;
   time: string;
   date: string;
+  lunarDate: string;
   location: string;
   address: string;
   mapUrl: string;
@@ -62,6 +63,7 @@ const EventSchema = new Schema<IEvent>(
     title: { type: String, required: true },
     time: { type: String, default: "" },
     date: { type: String, default: "" },
+    lunarDate: { type: String, default: "" },
     location: { type: String, default: "" },
     address: { type: String, default: "" },
     mapUrl: { type: String, default: "" },

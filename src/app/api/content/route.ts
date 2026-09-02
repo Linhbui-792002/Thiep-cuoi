@@ -3,6 +3,7 @@ import { connectDB } from "@/lib/mongodb";
 import { getSession } from "@/lib/session";
 import ContentSection from "@/models/ContentSection";
 import { SECTION_DEFINITIONS } from "@/lib/constants";
+import { revalidateInvitation } from "@/lib/revalidate";
 
 export async function GET() {
   try {
@@ -53,6 +54,7 @@ export async function PUT(request: NextRequest) {
       { upsert: true, returnDocument: "after" },
     );
 
+    revalidateInvitation();
     return NextResponse.json(section);
   } catch (error) {
     console.error("PUT content error:", error);
@@ -85,6 +87,7 @@ export async function DELETE(request: NextRequest) {
       (img: { _id?: unknown }) => String(img._id) !== imageId,
     );
     await section.save();
+    revalidateInvitation();
 
     return NextResponse.json(section);
   } catch (error) {
