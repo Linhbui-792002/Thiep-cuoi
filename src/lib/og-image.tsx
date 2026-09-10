@@ -10,18 +10,20 @@ import { INVITATION_SIDES, type InvitationSide } from "@/lib/invitation-side";
 export const ogSize = { width: 1200, height: 630 };
 export const ogContentType = "image/png";
 
-function asBytes(data: unknown): Buffer | null {
+function asBytes(data: unknown): Uint8Array | null {
   if (!data) return null;
-  if (Buffer.isBuffer(data)) return data;
-  if (data instanceof Uint8Array) return Buffer.from(data);
+  if (Buffer.isBuffer(data)) return new Uint8Array(data);
+  if (data instanceof Uint8Array) return data;
   if (typeof data === "object" && "buffer" in data) {
     const buf = (data as { buffer: ArrayBuffer | Uint8Array }).buffer;
-    return Buffer.from(buf instanceof Uint8Array ? buf : new Uint8Array(buf));
+    return buf instanceof Uint8Array ? buf : new Uint8Array(buf);
   }
   return null;
 }
 
-async function loadCalendarPhoto(seoImageUrl: string | undefined): Promise<Buffer | null> {
+async function loadCalendarPhoto(
+  seoImageUrl: string | undefined,
+): Promise<Uint8Array | null> {
   if (!seoImageUrl) return null;
   const idMatch = /\/api\/images\/([a-f0-9]{24})/i.exec(seoImageUrl);
   if (idMatch && mongoose.Types.ObjectId.isValid(idMatch[1])) {
@@ -39,7 +41,7 @@ async function loadCalendarPhoto(seoImageUrl: string | undefined): Promise<Buffe
   try {
     const res = await fetch(seoImageUrl);
     if (!res.ok) return null;
-    return Buffer.from(await res.arrayBuffer());
+    return new Uint8Array(await res.arrayBuffer());
   } catch {
     return null;
   }
@@ -57,6 +59,9 @@ export async function invitationOgImage(side?: InvitationSide) {
     : "Thiệp cưới";
   const { primary, background, accent } = config.theme;
   const photoData = await loadCalendarPhoto(seoImageUrl);
+  const photoSrc = photoData
+    ? `data:image/jpeg;base64,${Buffer.from(photoData).toString("base64")}`
+    : null;
 
   return new ImageResponse(
     (
@@ -69,10 +74,10 @@ export async function invitationOgImage(side?: InvitationSide) {
           backgroundColor: primary,
         }}
       >
-        {photoData ? (
+        {photoSrc ? (
           // eslint-disable-next-line @next/next/no-img-element -- next/og ImageResponse
           <img
-            src={photoData}
+            src={photoSrc}
             width={1200}
             height={630}
             alt=""
@@ -91,7 +96,7 @@ export async function invitationOgImage(side?: InvitationSide) {
             inset: 0,
             display: "flex",
             background:
-              photoData != null
+              photoSrc != null
                 ? "linear-gradient(180deg, rgba(0,0,0,0.35) 0%, rgba(0,0,0,0.55) 100%)"
                 : "transparent",
           }}
@@ -114,7 +119,7 @@ export async function invitationOgImage(side?: InvitationSide) {
               flexDirection: "column",
               alignItems: "center",
               justifyContent: "center",
-              backgroundColor: photoData ? "transparent" : background,
+              backgroundColor: photoSrc ? "transparent" : background,
             }}
           >
             <div
@@ -122,7 +127,7 @@ export async function invitationOgImage(side?: InvitationSide) {
                 display: "flex",
                 fontSize: 26,
                 letterSpacing: 6,
-                color: photoData ? "#ffffff" : accent,
+                color: photoSrc ? "#ffffff" : accent,
               }}
             >
               {kicker}
@@ -132,7 +137,7 @@ export async function invitationOgImage(side?: InvitationSide) {
                 display: "flex",
                 marginTop: 28,
                 fontSize: 64,
-                color: photoData ? "#ffffff" : primary,
+                color: photoSrc ? "#ffffff" : primary,
               }}
             >
               {names}
@@ -143,7 +148,7 @@ export async function invitationOgImage(side?: InvitationSide) {
                 marginTop: 24,
                 fontSize: 28,
                 letterSpacing: 4,
-                color: photoData ? "#ffffff" : primary,
+                color: photoSrc ? "#ffffff" : primary,
               }}
             >
               {date}
