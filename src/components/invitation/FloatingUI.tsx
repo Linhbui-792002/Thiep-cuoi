@@ -12,7 +12,7 @@ import {
   Gem,
   FloatingHeart,
 } from "@/components/icons";
-import { extractYoutubeId, youtubeEmbedUrl } from "@/lib/youtube";
+import { extractYoutubeId, youtubeEmbedUrl, youtubeCommand } from "@/lib/youtube";
 
 interface Props {
   initialWishes: Wish[];
@@ -61,7 +61,8 @@ export function FloatingUI({
   const [hearts, setHearts] = useState<FlyingHeart[]>([]);
   const [flyingWishes, setFlyingWishes] = useState<FlyingWish[]>([]);
   const [wishOpen, setWishOpen] = useState(false);
-  const [musicPlaying, setMusicPlaying] = useState(Boolean(videoId));
+  const [musicPlaying, setMusicPlaying] = useState(false);
+  const [ytOrigin, setYtOrigin] = useState("");
   const [likeCount, setLikeCount] = useState<number | null>(null);
   const [wishes, setWishes] = useState<Wish[]>(initialWishes);
   const [name, setName] = useState("");
@@ -69,10 +70,20 @@ export function FloatingUI({
   const [loading, setLoading] = useState(false);
   const [wishError, setWishError] = useState("");
   const iframeRef = useRef<HTMLIFrameElement | null>(null);
+  const musicPlayingRef = useRef(false);
   const wishesRef = useRef(wishes);
   const laneRef = useRef(0);
   const wishIndexRef = useRef(0);
   wishesRef.current = wishes;
+  musicPlayingRef.current = musicPlaying;
+
+  useEffect(() => {
+    setYtOrigin(window.location.origin);
+  }, []);
+
+  function sendYt(func: "playVideo" | "pauseVideo") {
+    iframeRef.current?.contentWindow?.postMessage(youtubeCommand(func), "*");
+  }
 
   const spawnWish = useCallback((wish: { name: string; message: string }, force = false) => {
     const id = `${Date.now()}-${Math.random().toString(36).slice(2, 7)}`;
@@ -143,18 +154,6 @@ export function FloatingUI({
   }, []);
 
   useEffect(() => {
-    if (!videoId || !musicPlaying) return;
-    const play = () => {
-      iframeRef.current?.contentWindow?.postMessage(
-        JSON.stringify({ event: "command", func: "playVideo", args: [] }),
-        "*",
-      );
-    };
-    document.addEventListener("pointerdown", play, { once: true });
-    return () => document.removeEventListener("pointerdown", play);
-  }, [videoId, musicPlaying]);
-
-  useEffect(() => {
     if (wishOpen) return;
     const list = wishesRef.current;
     if (list.length === 0) return;
@@ -191,7 +190,14 @@ export function FloatingUI({
 
   function toggleMusic() {
     if (!videoId) return;
-    setMusicPlaying((playing) => !playing);
+    const next = !musicPlaying;
+    setMusicPlaying(next);
+    // Gọi trong click handler để vượt autoplay policy; retry nếu iframe chưa sẵn sàng
+    sendYt(next ? "playVideo" : "pauseVideo");
+    if (next) {
+      window.setTimeout(() => sendYt("playVideo"), 400);
+      window.setTimeout(() => sendYt("playVideo"), 1200);
+    }
   }
 
   async function submitWish(e: React.FormEvent) {
@@ -228,15 +234,18 @@ export function FloatingUI({
 
   return (
     <>
-      {videoId && musicPlaying && (
+      {videoId && ytOrigin ? (
         <iframe
           ref={iframeRef}
           className="yt-bg-player"
-          src={youtubeEmbedUrl(videoId, true)}
+          src={youtubeEmbedUrl(videoId, ytOrigin)}
           allow="autoplay; encrypted-media"
           title="Nhạc nền thiệp cưới"
+          onLoad={() => {
+            if (musicPlayingRef.current) sendYt("playVideo");
+          }}
         />
-      )}
+      ) : null}
 
       {videoId && (
         <button
