@@ -61,7 +61,7 @@ export function FloatingUI({
   const [hearts, setHearts] = useState<FlyingHeart[]>([]);
   const [flyingWishes, setFlyingWishes] = useState<FlyingWish[]>([]);
   const [wishOpen, setWishOpen] = useState(false);
-  const [musicPlaying, setMusicPlaying] = useState(false);
+  const [musicPlaying, setMusicPlaying] = useState(Boolean(videoId));
   const [ytOrigin, setYtOrigin] = useState("");
   const [likeCount, setLikeCount] = useState<number | null>(null);
   const [wishes, setWishes] = useState<Wish[]>(initialWishes);
@@ -70,7 +70,7 @@ export function FloatingUI({
   const [loading, setLoading] = useState(false);
   const [wishError, setWishError] = useState("");
   const iframeRef = useRef<HTMLIFrameElement | null>(null);
-  const musicPlayingRef = useRef(false);
+  const musicPlayingRef = useRef(Boolean(videoId));
   const wishesRef = useRef(wishes);
   const laneRef = useRef(0);
   const wishIndexRef = useRef(0);
@@ -84,6 +84,27 @@ export function FloatingUI({
   function sendYt(func: "playVideo" | "pauseVideo") {
     iframeRef.current?.contentWindow?.postMessage(youtubeCommand(func), "*");
   }
+
+  // Tự phát nhạc; trình duyệt có thể chờ gesture đầu tiên mới cho tiếng
+  useEffect(() => {
+    if (!videoId || !musicPlaying) return;
+
+    const kick = () => sendYt("playVideo");
+    kick();
+    const timers = [400, 1200, 2500].map((ms) => window.setTimeout(kick, ms));
+
+    const onGesture = () => kick();
+    document.addEventListener("pointerdown", onGesture);
+    document.addEventListener("touchstart", onGesture, { passive: true });
+    document.addEventListener("keydown", onGesture);
+
+    return () => {
+      timers.forEach((id) => window.clearTimeout(id));
+      document.removeEventListener("pointerdown", onGesture);
+      document.removeEventListener("touchstart", onGesture);
+      document.removeEventListener("keydown", onGesture);
+    };
+  }, [videoId, musicPlaying]);
 
   const spawnWish = useCallback((wish: { name: string; message: string }, force = false) => {
     const id = `${Date.now()}-${Math.random().toString(36).slice(2, 7)}`;
@@ -238,7 +259,7 @@ export function FloatingUI({
         <iframe
           ref={iframeRef}
           className="yt-bg-player"
-          src={youtubeEmbedUrl(videoId, ytOrigin)}
+          src={youtubeEmbedUrl(videoId, { origin: ytOrigin, autoplay: true })}
           allow="autoplay; encrypted-media"
           title="Nhạc nền thiệp cưới"
           onLoad={() => {

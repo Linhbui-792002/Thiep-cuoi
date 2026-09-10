@@ -329,7 +329,7 @@ body {
 
 .env-flap {
   position: absolute;
-  top: 8px;
+  top: 11px;
   left: 0;
   right: 0;
   z-index: 20;
@@ -423,7 +423,7 @@ body {
   top: 8px;
   z-index: 3;
   width: 158px;
-  margin-left: -79px;
+  margin-left: -62px;
 }
 
 .env-contents .ticket-stub {

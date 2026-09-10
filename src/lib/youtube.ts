@@ -19,9 +19,12 @@ export function extractYoutubeId(url: string): string | null {
   return null;
 }
 
-export function youtubeEmbedUrl(videoId: string, origin?: string) {
+export function youtubeEmbedUrl(
+  videoId: string,
+  options?: { origin?: string; autoplay?: boolean },
+) {
   const params = new URLSearchParams({
-    autoplay: "0",
+    autoplay: options?.autoplay ? "1" : "0",
     loop: "1",
     playlist: videoId,
     controls: "0",
@@ -30,7 +33,7 @@ export function youtubeEmbedUrl(videoId: string, origin?: string) {
     playsinline: "1",
     enablejsapi: "1",
   });
-  if (origin) params.set("origin", origin);
+  if (options?.origin) params.set("origin", options.origin);
   return `https://www.youtube.com/embed/${videoId}?${params.toString()}`;
 }
 
