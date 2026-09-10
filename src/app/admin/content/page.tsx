@@ -103,8 +103,10 @@ export default function AdminContentPage() {
       const newImages: ImageItem[] = [...currentImages];
 
       for (const file of Array.from(files)) {
+        const { compressImage } = await import("@/lib/compress-image");
+        const compressed = await compressImage(file);
         const formData = new FormData();
-        formData.append("file", file);
+        formData.append("file", compressed);
 
         const uploadRes = await fetch("/api/upload", {
           method: "POST",

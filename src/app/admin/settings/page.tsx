@@ -90,8 +90,10 @@ export default function AdminSettingsPage() {
     if (!files?.[0] || !config) return;
     setSaving(true);
     try {
+      const { compressImage } = await import("@/lib/compress-image");
+      const compressed = await compressImage(files[0]);
       const formData = new FormData();
-      formData.append("file", files[0]);
+      formData.append("file", compressed);
       const uploadRes = await fetch("/api/upload", { method: "POST", body: formData });
       const uploadData = await uploadRes.json();
       if (!uploadRes.ok) throw new Error(uploadData.error || "Upload QR thất bại");
