@@ -5,9 +5,11 @@ import { coupleTitle, getSiteUrl } from "@/lib/seo";
 export function WeddingJsonLd({
   config,
   side,
+  imageUrl,
 }: {
   config: SiteConfig;
   side: InvitationSide;
+  imageUrl?: string;
 }) {
   const event = config.events[0];
   const meta = INVITATION_SIDES[side];
@@ -21,6 +23,7 @@ export function WeddingJsonLd({
     eventStatus: "https://schema.org/EventScheduled",
     inLanguage: "vi",
     url: `${getSiteUrl()}${meta.path}`,
+    ...(imageUrl ? { image: [imageUrl] } : {}),
     organizer: {
       "@type": "Person",
       name: coupleTitle(config),

@@ -289,9 +289,9 @@ export function InviteSection({ config, sections, pageSections, side = "bride" }
       <p className="invite-event text-caps text-gray-500">{eventLabel}</p>
 
       <div className="invite-names">
-        <p className="invite-name invite-name-bride font-hand text-olive">{config.brideName}</p>
-        <HeartBouquet className="invite-name-heart" />
         <p className="invite-name invite-name-groom font-hand text-olive">{config.groomName}</p>
+        <HeartBouquet className="invite-name-heart" />
+        <p className="invite-name invite-name-bride font-hand text-olive">{config.brideName}</p>
       </div>
 
       <div className="invite-photos">
@@ -311,16 +311,16 @@ export function InviteSection({ config, sections, pageSections, side = "bride" }
 
         <div className="invite-photo invite-photo-left">
           <SectionImage
-            images={brideImg ? [brideImg] : []}
+            images={groomImg ? [groomImg] : []}
             className="h-full w-full"
-            fallback={<PlaceholderImage className="h-full w-full" label="Cô dâu" />}
+            fallback={<PlaceholderImage className="h-full w-full" label="Chú rể" />}
           />
         </div>
         <div className="invite-photo invite-photo-right">
           <SectionImage
-            images={groomImg ? [groomImg] : []}
+            images={brideImg ? [brideImg] : []}
             className="h-full w-full"
-            fallback={<PlaceholderImage className="h-full w-full" label="Chú rể" />}
+            fallback={<PlaceholderImage className="h-full w-full" label="Cô dâu" />}
           />
         </div>
       </div>

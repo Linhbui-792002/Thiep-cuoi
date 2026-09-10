@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import type { InvitationSide, SiteConfig } from "@/types";
 import { INVITATION_SIDES } from "@/lib/invitation-side";
+import { getContentSections } from "@/lib/data";
 import { formatDateSlash } from "@/lib/images";
 
 export function getSiteUrl() {
@@ -27,12 +28,29 @@ export function invitationDescription(config: SiteConfig, side?: InvitationSide)
   return `Trân trọng kính mời bạn tham dự ${ceremony.toLowerCase()} của ${names} vào ngày ${date}.`;
 }
 
+/** Ảnh SEO/OG = ảnh cạnh lịch (calendar). */
+export async function getSeoImageUrl(): Promise<string | undefined> {
+  const sections = await getContentSections();
+  const url = sections.find((s) => s.key === "calendar")?.images?.[0]?.url;
+  if (!url) return undefined;
+  if (url.startsWith("http://") || url.startsWith("https://")) return url;
+  return `${getSiteUrl()}${url.startsWith("/") ? "" : "/"}${url}`;
+}
+
 export function pageMetadata(
   config: SiteConfig,
-  options: { path: string; title: string; description: string },
+  options: {
+    path: string;
+    title: string;
+    description: string;
+    imageUrl?: string;
+  },
 ): Metadata {
   const names = coupleTitle(config);
   const fullTitle = `${options.title} | ${names}`;
+  const images = options.imageUrl
+    ? [{ url: options.imageUrl, alt: names }]
+    : undefined;
   return {
     title: { absolute: fullTitle },
     description: options.description,
@@ -44,11 +62,13 @@ export function pageMetadata(
       siteName: names,
       title: fullTitle,
       description: options.description,
+      ...(images ? { images } : {}),
     },
     twitter: {
       card: "summary_large_image",
       title: fullTitle,
       description: options.description,
+      ...(options.imageUrl ? { images: [options.imageUrl] } : {}),
     },
   };
 }

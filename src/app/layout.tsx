@@ -2,7 +2,7 @@ import type { Metadata, Viewport } from "next";
 import { Allura, Charm, Playfair_Display, Cormorant_Garamond, Be_Vietnam_Pro } from "next/font/google";
 import { getCachedSiteConfig } from "@/lib/data";
 import { DEFAULT_THEME } from "@/lib/theme";
-import { coupleTitle, getSiteUrl, invitationDescription } from "@/lib/seo";
+import { coupleTitle, getSeoImageUrl, getSiteUrl, invitationDescription } from "@/lib/seo";
 import "./globals.css";
 
 const allura = Allura({
@@ -46,10 +46,14 @@ export const viewport: Viewport = {
 };
 
 export async function generateMetadata(): Promise<Metadata> {
-  const config = await getCachedSiteConfig();
+  const [config, seoImage] = await Promise.all([
+    getCachedSiteConfig(),
+    getSeoImageUrl(),
+  ]);
   const names = coupleTitle(config);
   const description = invitationDescription(config);
   const site = getSiteUrl();
+  const images = seoImage ? [{ url: seoImage, alt: names }] : undefined;
 
   return {
     metadataBase: new URL(site),
@@ -67,11 +71,13 @@ export async function generateMetadata(): Promise<Metadata> {
       siteName: names,
       title: `${names} | Thiệp cưới`,
       description,
+      ...(images ? { images } : {}),
     },
     twitter: {
       card: "summary_large_image",
       title: `${names} | Thiệp cưới`,
       description,
+      ...(seoImage ? { images: [seoImage] } : {}),
     },
     alternates: { canonical: "/" },
   };
