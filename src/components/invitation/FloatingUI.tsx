@@ -168,7 +168,7 @@ export function FloatingUI({
         const saved = data.count;
         setLikeCount((n) => Math.max(n ?? 0, saved));
       })
-      .catch(() => {});
+      .catch(() => { });
     return () => {
       cancelled = true;
     };
@@ -277,8 +277,6 @@ export function FloatingUI({
           <Music size={17} className={musicPlaying ? "music-playing" : ""} strokeWidth={1.75} />
         </button>
       )}
-
-      <p className="side-watermark text-vertical font-label">Gift by Linh Bún</p>
 
       <div className="fx-layer" aria-hidden>
         {flyingWishes.map((w) => (
